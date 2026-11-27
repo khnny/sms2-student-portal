@@ -53,7 +53,7 @@ HostForge gives one database per app, so the portal is its **own app** with its 
    - `PORTAL_PUBLIC_URL=https://<portal app address>`
    - `PORTAL_CLIENT_SECRET=<client secret>`
    - `PORTAL_WEBHOOK_SECRET=<webhook secret>`
-   - `PORTAL_DB_HOST`, `PORTAL_DB_PORT`, `PORTAL_DB_NAME`, `PORTAL_DB_USER` and `PORTAL_DB_PASS` (from the portal app's database)
+   - Database: nothing to add. HostForge injects `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME` and `DB_PASSWORD` for the app database, and the portal reads them. `PORTAL_DB_*` still overrides them.
 4. **SMS 2 app Environment Variables:**
    - `SMS2_JWT_SECRET=<a third random value>`
    - `SMS2_PORTAL_CLIENT_SECRET=<client secret>`

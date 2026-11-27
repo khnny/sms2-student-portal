@@ -38,11 +38,22 @@ defined('PORTAL_WEBHOOK_SECRET') || define('PORTAL_WEBHOOK_SECRET', portal_env('
 defined('PORTAL_PUBLIC_URL') || define('PORTAL_PUBLIC_URL', rtrim(portal_env('PORTAL_PUBLIC_URL'), '/'));
 
 // Portal's own small database (sessions stay in PHP; this stores webhook events and notifications).
-defined('PORTAL_DB_HOST') || define('PORTAL_DB_HOST', portal_env('PORTAL_DB_HOST', 'localhost'));
-defined('PORTAL_DB_PORT') || define('PORTAL_DB_PORT', portal_env('PORTAL_DB_PORT', '3306'));
-defined('PORTAL_DB_NAME') || define('PORTAL_DB_NAME', portal_env('PORTAL_DB_NAME', 'sms2_portal'));
-defined('PORTAL_DB_USER') || define('PORTAL_DB_USER', portal_env('PORTAL_DB_USER', 'root'));
-defined('PORTAL_DB_PASS') || define('PORTAL_DB_PASS', portal_env('PORTAL_DB_PASS', ''));
+// PORTAL_DB_* wins; otherwise the DB_* variables HostForge injects for the app's database are used.
+function portal_env_first(array $keys, string $default = ''): string
+{
+    foreach ($keys as $key) {
+        $value = portal_env($key);
+        if ($value !== '') {
+            return $value;
+        }
+    }
+    return $default;
+}
+defined('PORTAL_DB_HOST') || define('PORTAL_DB_HOST', portal_env_first(['PORTAL_DB_HOST', 'DB_HOST'], 'localhost'));
+defined('PORTAL_DB_PORT') || define('PORTAL_DB_PORT', portal_env_first(['PORTAL_DB_PORT', 'DB_PORT'], '3306'));
+defined('PORTAL_DB_NAME') || define('PORTAL_DB_NAME', portal_env_first(['PORTAL_DB_NAME', 'DB_DATABASE', 'DB_NAME'], 'sms2_portal'));
+defined('PORTAL_DB_USER') || define('PORTAL_DB_USER', portal_env_first(['PORTAL_DB_USER', 'DB_USERNAME', 'DB_USER'], 'root'));
+defined('PORTAL_DB_PASS') || define('PORTAL_DB_PASS', portal_env_first(['PORTAL_DB_PASS', 'DB_PASSWORD', 'DB_PASS'], ''));
 
 defined('PORTAL_APP_NAME') || define('PORTAL_APP_NAME', 'BCP Student Portal');
 date_default_timezone_set(portal_env('PORTAL_TIMEZONE', 'Asia/Manila'));
