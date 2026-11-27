@@ -1,0 +1,10 @@
+Options -Indexes
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteRule ^(config|src|database|storage)(/|$) - [F,L]
+    RewriteRule \.(sql|md|log|bak)$ - [F,L,NC]
+</IfModule>
+<IfModule mod_headers.c>
+    Header set X-Content-Type-Options "nosniff"
+    Header set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>
