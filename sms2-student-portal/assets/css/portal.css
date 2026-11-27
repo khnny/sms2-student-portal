@@ -1,0 +1,56 @@
+/* BCP Student Portal */
+:root {
+    --bcp-navy: #0b2a6b;
+    --bcp-navy-deep: #071c48;
+    --bcp-blue: #1a6fc4;
+    --ink: #0f172a;
+    --muted: #64748b;
+    --line: #e2e8f0;
+    --bg: #f4f6fb;
+}
+body { font-family: "Inter", "Segoe UI", Tahoma, sans-serif; background: var(--bg); color: var(--ink); }
+.portal-topbar {
+    position: sticky; top: 0; z-index: 1030; height: 60px;
+    display: flex; align-items: center; padding: 0 1.25rem;
+    background: linear-gradient(90deg, var(--bcp-navy-deep), var(--bcp-navy));
+    color: #fff; box-shadow: 0 2px 8px rgba(7, 28, 72, .25);
+}
+.portal-brand { display: flex; align-items: center; gap: .6rem; color: #fff; text-decoration: none; font-weight: 600; }
+.portal-brand img { width: 34px; height: 34px; object-fit: contain; }
+.portal-avatar {
+    width: 34px; height: 34px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;
+    background: #fff; color: var(--bcp-navy); font-weight: 700; font-size: .8rem;
+}
+.portal-shell { display: flex; min-height: calc(100vh - 60px); }
+.portal-nav { width: 250px; flex-shrink: 0; background: #fff; border-right: 1px solid var(--line); padding: 1rem .75rem; }
+@media (min-width: 992px) { .portal-nav { position: sticky; top: 60px; height: calc(100vh - 60px); overflow-y: auto; } }
+.portal-nav .nav-link {
+    display: flex; align-items: center; gap: .7rem; color: #334155; border-radius: 8px;
+    padding: .5rem .75rem; font-size: .92rem;
+}
+.portal-nav .nav-link i:first-child { width: 18px; text-align: center; color: var(--muted); }
+.portal-nav .nav-link:hover { background: #eef2fb; color: var(--bcp-navy); }
+.portal-nav .nav-link.active { background: var(--bcp-navy); color: #fff; }
+.portal-nav .nav-link.active i { color: #fff; }
+.portal-nav-heading { margin: 1.25rem .75rem .4rem; font-size: .72rem; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.portal-main { flex: 1; padding: 1.75rem 2rem 3rem; max-width: 1200px; min-width: 0; }
+.portal-title { font-size: 1.5rem; font-weight: 700; margin-bottom: .35rem; color: var(--bcp-navy-deep); }
+.portal-card { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 1.1rem 1.25rem; box-shadow: 0 1px 2px rgba(15, 23, 42, .04); }
+.portal-card h2.h6 { font-size: .75rem; letter-spacing: .05em; }
+.portal-feed li { padding: .55rem 0; border-top: 1px solid var(--line); }
+.portal-feed li:first-child { border-top: 0; }
+.portal-feed li.unread strong::before { content: ""; display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--bcp-blue); margin-right: .45rem; }
+.portal-actions { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: .6rem; }
+.portal-action {
+    display: flex; flex-direction: column; align-items: flex-start; gap: .45rem; padding: .8rem;
+    border: 1px solid var(--line); border-radius: 10px; color: var(--ink); text-decoration: none; font-size: .88rem;
+}
+.portal-action i { color: var(--bcp-blue); font-size: 1.1rem; }
+.portal-action:hover { border-color: var(--bcp-blue); background: #f5f9ff; }
+.progress-bar { background-color: var(--bcp-blue); }
+.portal-login { min-height: 100vh; display: flex; align-items: center; justify-content: center;
+    background: radial-gradient(circle at 20% 20%, #1a3f8f 0, var(--bcp-navy-deep) 60%); }
+.login-card { background: #fff; border-radius: 16px; padding: 2.5rem 2.25rem; width: min(420px, 92vw); text-align: center; box-shadow: 0 20px 50px rgba(0, 0, 0, .3); }
+.login-crest { width: 84px; height: 84px; object-fit: contain; margin-bottom: 1rem; }
+.login-card h1 { font-size: 1.6rem; font-weight: 700; color: var(--bcp-navy-deep); margin-bottom: .2rem; }
+@media (max-width: 991.98px) { .portal-main { padding: 1.25rem 1rem 2.5rem; } }
