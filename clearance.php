@@ -11,7 +11,7 @@ portal_header('Clearance & payment', 'clearance', $user);
 <div class="row g-3">
     <div class="col-lg-6">
         <section class="portal-card h-100">
-            <div class="d-flex justify-content-between"><h2 class="h6 text-uppercase text-muted">College payment</h2><a class="small" href="open.php?to=payment">Upload payment</a></div>
+            <div class="d-flex justify-content-between"><h2 class="h6 text-uppercase text-muted">College payment</h2><a class="small" href="step.php?do=payment">Upload payment</a></div>
             <?php if ($data['payments']): ?>
                 <table class="table table-sm mb-0"><thead><tr><th>Stage</th><th>OR number</th><th>Uploaded</th><th>Status</th></tr></thead><tbody>
                 <?php foreach ($data['payments'] as $p): ?>
@@ -26,7 +26,7 @@ portal_header('Clearance & payment', 'clearance', $user);
     </div>
     <div class="col-lg-6">
         <section class="portal-card h-100">
-            <div class="d-flex justify-content-between"><h2 class="h6 text-uppercase text-muted">Research clearance</h2><a class="small" href="open.php?to=clearance">Open clearance form</a></div>
+            <div class="d-flex justify-content-between"><h2 class="h6 text-uppercase text-muted">Research clearance</h2><a class="small" href="step.php?do=clearance">Open clearance form</a></div>
             <?php if ($data['clearances']): ?>
                 <?php foreach ($data['clearances'] as $c): ?>
                     <div class="border-top pt-2 mt-2">

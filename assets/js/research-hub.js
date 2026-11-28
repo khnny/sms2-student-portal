@@ -85,7 +85,7 @@
         var link = ev.target.closest('[data-rh-href]');
         if (link) {
             ev.preventDefault();
-            window.open(link.getAttribute('data-rh-href'), '_blank', 'noopener');
+            window.location.href = link.getAttribute('data-rh-href');
             return;
         }
         var btn = ev.target.closest('[data-rh-open]');
