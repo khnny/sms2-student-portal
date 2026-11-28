@@ -11,6 +11,23 @@ The student-facing portal for SMS 2. It runs as its **own app and deployment**. 
 
 The full contract is in the SMS 2 project: `docs/INTEGRATION-API.md`.
 
+## Modules (one contract per module)
+
+The portal is the student's single front door for every SMS 2 module. Each module is one file in `src/modules/<key>.php` that returns its label, sidebar entries, student actions, the API prefix it uses, the webhook events it owns and how those events read as notifications. The full contract is written at the top of `src/modules.php`.
+
+| Module | File | Status |
+|---|---|---|
+| CRAD (Research) | `src/modules/crad.php` | Live |
+| Registrar | `src/modules/registrar.php` | Stub, `enabled => false` |
+| Payments | `src/modules/payment.php` | Stub, `enabled => false` |
+| Accreditation | `src/modules/accreditation.php` | Stub, `enabled => false` |
+
+To add a module: add its endpoints under its prefix in SMS 2 API v1 (and its webhook events), fill in the stub, then set `enabled` to `true`. The sidebar, `step.php` actions and webhook notifications pick it up automatically.
+
+## When SMS 2 is down
+
+Every successful read from the API is saved per student in `portal_api_cache`. If SMS 2 cannot be reached (no connection or a 5xx error), the portal shows that saved data with a banner giving the time it was last updated. Uploads and forms are not queued: the student is told nothing was sent and to try again later.
+
 ## Files
 
 | Path | What it is |
@@ -22,7 +39,8 @@ The full contract is in the SMS 2 project: `docs/INTEGRATION-API.md`.
 | `step.php` | One CRAD step in the portal: chapter and manuscript upload, status of the other steps |
 | `open.php` | Opens an SMS 2 student page with the same login, same tab |
 | `webhook.php` | Receives SMS 2 webhooks |
-| `src/bootstrap.php` | Session, API client, token refresh, portal database |
+| `src/bootstrap.php` | Session, API client, token refresh, last-known-status cache, portal database |
+| `src/modules.php`, `src/modules/*.php` | Module registry and one file per module |
 | `src/layout.php` | Page layout |
 | `config/config.php`, `config/local.example.php` | Settings |
 | `database/portal_db.sql` | Portal tables (created automatically) |

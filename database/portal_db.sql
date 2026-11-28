@@ -35,3 +35,12 @@ CREATE TABLE IF NOT EXISTS `portal_notifications` (
   KEY `idx_portal_notif_user` (`user_id`, `created_at`),
   KEY `idx_portal_notif_student` (`student_id`, `created_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Last successful SMS 2 API answer per student and endpoint, shown when SMS 2 is down.
+CREATE TABLE IF NOT EXISTS `portal_api_cache` (
+  `user_id` int(10) unsigned NOT NULL,
+  `path` varchar(190) NOT NULL,
+  `body` mediumtext NOT NULL,
+  `fetched_at` datetime NOT NULL,
+  PRIMARY KEY (`user_id`, `path`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

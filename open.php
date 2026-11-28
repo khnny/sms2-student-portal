@@ -12,6 +12,10 @@ $key = (string) ($_GET['to'] ?? '');
 if (!isset($actions[$key])) {
     portal_redirect(portal_url('index.php'));
 }
+if (empty($actions[$key]['path'])) {
+    // This action is done fully inside the portal now.
+    portal_redirect(portal_url('step.php?do=' . rawurlencode($key)));
+}
 $ticket = portal_api('auth/ticket', 'POST', ['path' => $actions[$key]['path']]);
 if (!is_array($ticket) || empty($ticket['url'])) {
     portal_flash('That page could not be opened right now. Please try again.', 'danger');

@@ -4,29 +4,17 @@ declare(strict_types=1);
 
 function portal_header(string $title, string $active, array $user): void
 {
-    // Sidebar, grouped like the CRAD (SMS 2) student sidebar.
-    $nav = [
-        ['index', 'Dashboard', 'fa-gauge'],
-        ['research', 'Research Workspace', 'fa-flask'],
-        ['group' => 'Research Steps', 'icon' => 'fa-list-check', 'items' => [
-            ['step.php?do=group', 'Research group', 'fa-user-group'],
-            ['step.php?do=proposal', 'Title approval', 'fa-file-signature'],
-            ['step.php?do=chapters', 'Submit chapters', 'fa-file-arrow-up'],
-            ['step.php?do=progress', 'Progress updates', 'fa-chart-line'],
-            ['step.php?do=manuscript', 'Final manuscript', 'fa-book'],
-        ]],
-        ['group' => 'Panel & Defense', 'icon' => 'fa-chalkboard-user', 'items' => [
-            ['step.php?do=panel', 'Panel application', 'fa-people-group'],
-            ['defenses', 'Defense schedule', 'fa-calendar-check'],
-        ]],
-        ['group' => 'Financial', 'icon' => 'fa-wallet', 'items' => [
-            ['step.php?do=payment', 'Upload college payment', 'fa-receipt'],
-            ['clearance', 'Clearance & payment', 'fa-clipboard-check'],
-        ]],
-        ['announcements', 'Announcement Bulletin', 'fa-bullhorn'],
-        ['notifications', 'Notifications', 'fa-bell'],
-        ['profile', 'My profile', 'fa-id-card'],
-    ];
+    // Sidebar, grouped like the CRAD (SMS 2) student sidebar. Each enabled
+    // module (src/modules/*.php) adds its own entries between Dashboard and the rest.
+    $nav = array_merge(
+        [['index', 'Dashboard', 'fa-gauge']],
+        portal_module_nav(),
+        [
+            ['announcements', 'Announcement Bulletin', 'fa-bullhorn'],
+            ['notifications', 'Notifications', 'fa-bell'],
+            ['profile', 'My profile', 'fa-id-card'],
+        ]
+    );
     $isActive = static function (string $key) use ($active): bool {
         return $key === $active || $key === 'step.php?do=' . $active;
     };
@@ -105,13 +93,18 @@ function portal_header(string $title, string $active, array $user): void
         <?php if ($flash): ?>
             <div class="alert alert-<?= e($flash['type']) ?>"><?= e($flash['message']) ?></div>
         <?php endif; ?>
+        <?php if (!empty($GLOBALS['portal_stale_at'])): ?>
+            <div class="alert alert-warning d-flex gap-2"><i class="fa-solid fa-plug-circle-exclamation mt-1"></i><span>SMS 2 cannot be reached right now. You are seeing your last known status from <b><?= e(date('M j, Y g:i A', (int) $GLOBALS['portal_stale_at'])) ?></b>. Uploads and forms will work again once it is back.</span></div>
+        <?php endif; ?>
     <?php
 }
 
 function portal_footer(): void
 {
     if (!empty($GLOBALS['portal_api_errors'])) {
-        echo '<div class="alert alert-warning mt-4 small">Some information could not be loaded from SMS 2 right now. Refresh the page to try again.</div>';
+        echo '<div class="alert alert-warning mt-4 small">' . (!empty($GLOBALS['portal_offline'])
+            ? 'SMS 2 cannot be reached right now and there is no saved status for some parts of this page yet. Please try again later.'
+            : 'Some information could not be loaded from SMS 2 right now. Refresh the page to try again.') . '</div>';
     }
     ?>
     </main>
