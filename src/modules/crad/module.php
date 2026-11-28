@@ -1,7 +1,7 @@
 <?php
 /**
  * CRAD (Research) module: every research step the student must finish.
- * Contract: see src/modules.php. CRAD officers, advisers and panels still
+ * Contract: see src/core/modules.php. Pages: crad/ at the portal root; step forms: steps/. CRAD officers, advisers and panels still
  * review everything inside SMS 2; the portal only shows status and sends
  * the student's own actions through the SMS 2 API.
  */
@@ -14,24 +14,24 @@ return [
     'enabled' => true,
     'api_prefix' => 'me/research',
     'nav' => [
-        ['research', 'Research Workspace', 'fa-flask'],
+        ['crad/index.php', 'Research Workspace', 'fa-flask'],
         ['group' => 'Research Steps', 'icon' => 'fa-list-check', 'items' => [
-            ['step.php?do=group', 'Research group', 'fa-user-group'],
-            ['step.php?do=proposal', 'Title approval', 'fa-file-signature'],
-            ['step.php?do=chapters', 'Submit chapters', 'fa-file-arrow-up'],
-            ['step.php?do=progress', 'Progress updates', 'fa-chart-line'],
-            ['step.php?do=manuscript', 'Final manuscript', 'fa-book'],
+            ['crad/step.php?do=group', 'Research group', 'fa-user-group'],
+            ['crad/step.php?do=proposal', 'Title approval', 'fa-file-signature'],
+            ['crad/step.php?do=chapters', 'Submit chapters', 'fa-file-arrow-up'],
+            ['crad/step.php?do=progress', 'Progress updates', 'fa-chart-line'],
+            ['crad/step.php?do=manuscript', 'Final manuscript', 'fa-book'],
         ]],
         ['group' => 'Defense', 'icon' => 'fa-chalkboard-user', 'items' => [
-            ['step.php?do=panel', 'Defense application', 'fa-people-group'],
-            ['defenses', 'Defense schedule', 'fa-calendar-check'],
+            ['crad/step.php?do=panel', 'Defense application', 'fa-people-group'],
+            ['crad/defenses.php', 'Defense schedule', 'fa-calendar-check'],
         ]],
         ['group' => 'Financial', 'icon' => 'fa-wallet', 'items' => [
-            ['step.php?do=payment', 'Upload college payment', 'fa-receipt'],
-            ['clearance', 'Clearance & payment', 'fa-clipboard-check'],
+            ['crad/step.php?do=payment', 'Upload college payment', 'fa-receipt'],
+            ['crad/clearance.php', 'Clearance & payment', 'fa-clipboard-check'],
         ]],
     ],
-    // Every CRAD student step is done in the portal (step.php?do=<key>). An action
+    // Every CRAD student step is done in the portal (crad/step.php?do=<key>, form in steps/<key>.php). An action
     // with a 'path' would instead open that SMS 2 page through open.php.
     'actions' => [
         'proposal' => ['label' => 'Research proposal / title', 'icon' => 'fa-file-signature'],

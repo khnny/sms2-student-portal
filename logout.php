@@ -1,7 +1,7 @@
 <?php
 /** Sign out of the portal and revoke the refresh token at SMS 2. */
 declare(strict_types=1);
-require_once __DIR__ . '/src/bootstrap.php';
+require_once __DIR__ . '/src/core/bootstrap.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !portal_csrf_ok()) {
     portal_redirect(portal_url('index.php'));

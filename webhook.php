@@ -7,7 +7,7 @@
  * Each event becomes a notification for the students it names.
  */
 declare(strict_types=1);
-require_once __DIR__ . '/src/bootstrap.php';
+require_once __DIR__ . '/src/core/bootstrap.php';
 
 header('Content-Type: application/json; charset=utf-8');
 

@@ -7,7 +7,7 @@
  */
 declare(strict_types=1);
 
-require_once __DIR__ . '/../config/config.php';
+require_once __DIR__ . '/../../config/config.php';
 require_once __DIR__ . '/modules.php';
 
 if (session_status() === PHP_SESSION_NONE && PHP_SAPI !== 'cli') {
@@ -43,6 +43,15 @@ function portal_base_url(): string
         $host = 'localhost';
     }
     $dir = rtrim(str_replace('\\', '/', dirname((string) ($_SERVER['SCRIPT_NAME'] ?? '/'))), '/');
+    // Pages of a module live one folder down (e.g. crad/step.php): the portal root is its parent.
+    $root = str_replace('\\', '/', (string) realpath(__DIR__ . '/../..'));
+    $scriptDir = str_replace('\\', '/', (string) realpath(dirname((string) ($_SERVER['SCRIPT_FILENAME'] ?? ''))));
+    if ($root !== '' && $scriptDir !== '' && str_starts_with($scriptDir, $root . '/')) {
+        $sub = substr($scriptDir, strlen($root));
+        if (str_ends_with($dir, $sub)) {
+            $dir = substr($dir, 0, -strlen($sub));
+        }
+    }
     return ($https ? 'https' : 'http') . '://' . $host . $dir;
 }
 
@@ -114,7 +123,7 @@ function portal_db(): PDO
         $server->exec('CREATE DATABASE IF NOT EXISTS `' . str_replace('`', '', PORTAL_DB_NAME) . '` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci');
         $pdo = new PDO($dsn . ';dbname=' . PORTAL_DB_NAME, PORTAL_DB_USER, PORTAL_DB_PASS, $options);
     }
-    $sql = preg_replace('/^\s*--.*$/m', '', (string) file_get_contents(__DIR__ . '/../database/portal_db.sql'));
+    $sql = preg_replace('/^\s*--.*$/m', '', (string) file_get_contents(__DIR__ . '/../../database/portal_db.sql'));
     foreach (array_filter(array_map('trim', explode(';', (string) $sql))) as $statement) {
         if (stripos($statement, 'CREATE TABLE') !== false) {
             $pdo->exec($statement);

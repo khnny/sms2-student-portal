@@ -1,7 +1,7 @@
 <?php
 /** SMS 2 sends the student back here with a one-time code; swap it server-to-server for tokens. */
 declare(strict_types=1);
-require_once __DIR__ . '/src/bootstrap.php';
+require_once __DIR__ . '/src/core/bootstrap.php';
 
 $expected = (string) ($_SESSION['oauth_state'] ?? '');
 unset($_SESSION['oauth_state']);

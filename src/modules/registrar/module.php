@@ -1,7 +1,7 @@
 <?php
 /**
  * Registrar module (not live yet). Enrollment, grades and document requests. Endpoints go under me/registrar in SMS 2 API v1.
- * Contract: see src/modules.php. To turn it on: add its endpoints and webhook
+ * Contract: see src/core/modules.php. To turn it on: add its endpoints and webhook
  * events in SMS 2, fill in nav and actions below, then set enabled to true.
  */
 declare(strict_types=1);

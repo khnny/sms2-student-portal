@@ -1,5 +1,5 @@
 <?php
-/** College payment upload (included by step.php). Uses $data from GET me/research/payment. */
+/** College payment upload (included by crad/step.php). Uses $data from GET me/research/payment. */
 ?>
 <section class="portal-card">
     <?= portal_step_head('fa-receipt', 'Upload college payment', $tone, $step, 'Payment') ?>

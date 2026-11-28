@@ -1,5 +1,5 @@
 <?php
-/** Title approval form, CRAD Form S2 (included by step.php). Uses $data from GET me/research/title. */
+/** Title approval form, CRAD Form S2 (included by crad/step.php). Uses $data from GET me/research/title. */
 $sub = $data['submission'] ?? null;
 $opt = $data['options'] ?? [];
 $val = static fn(string $k, string $default = ''): string => (string) ($sub[$k] ?? '') !== '' ? (string) $sub[$k] : $default;
@@ -76,7 +76,7 @@ $pickedSdg = $val('primary_sdg');
                 </div>
                 <?= portal_note('The form goes to your adviser, then the coordinator and CRAD. You get a notification at each step.') ?>
                 <div class="d-flex gap-2 justify-content-end mt-4">
-                    <a href="research.php" class="btn btn-soft">Cancel</a>
+                    <a href="crad/index.php" class="btn btn-soft">Cancel</a>
                     <button class="btn btn-primary" type="submit"><i class="fa-solid fa-paper-plane me-1"></i><?= !empty($data['is_resubmit']) ? 'Send again to adviser' : 'Send to adviser' ?></button>
                 </div>
             </form>

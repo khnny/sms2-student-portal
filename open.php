@@ -4,7 +4,7 @@
  * same student, without a second login. Only fixed action keys are allowed.
  */
 declare(strict_types=1);
-require_once __DIR__ . '/src/bootstrap.php';
+require_once __DIR__ . '/src/core/bootstrap.php';
 portal_require_login();
 
 $actions = portal_sms2_actions();
@@ -14,7 +14,7 @@ if (!isset($actions[$key])) {
 }
 if (empty($actions[$key]['path'])) {
     // This action is done fully inside the portal now.
-    portal_redirect(portal_url('step.php?do=' . rawurlencode($key)));
+    portal_redirect(portal_url('crad/step.php?do=' . rawurlencode($key)));
 }
 $ticket = portal_api('auth/ticket', 'POST', ['path' => $actions[$key]['path']]);
 if (!is_array($ticket) || empty($ticket['url'])) {

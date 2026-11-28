@@ -1,5 +1,5 @@
 <?php
-/** Progress update form (included by step.php). Uses $data from GET me/research/progress. */
+/** Progress update form (included by crad/step.php). Uses $data from GET me/research/progress. */
 $open = array_values(array_filter($data['milestones'] ?? [], static fn($m) => !empty($m['can_submit'])));
 ?>
 <section class="portal-card">
@@ -45,7 +45,7 @@ $open = array_values(array_filter($data['milestones'] ?? [], static fn($m) => !e
                 <div class="mb-3"><label class="form-label" for="next_planned_activity">Next planned activity</label><textarea class="form-control" id="next_planned_activity" name="next_planned_activity" rows="2" maxlength="4000"></textarea></div>
                 <?= portal_file_field('document', 'Document (needed for a chapter sent for review)', '.pdf,.doc,.docx,.jpg,.jpeg,.png', '.pdf, .doc, .docx, .jpg, .png · up to ' . (int) ($data['max_mb'] ?? 10) . ' MB', false) ?>
                 <div class="d-flex gap-2 justify-content-end mt-4">
-                    <a href="research.php" class="btn btn-soft">Cancel</a>
+                    <a href="crad/index.php" class="btn btn-soft">Cancel</a>
                     <button class="btn btn-primary" type="submit"><i class="fa-solid fa-paper-plane me-1"></i>Send update</button>
                 </div>
             </form>
