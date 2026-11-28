@@ -64,7 +64,7 @@ $chapters = $do === 'chapters' ? portal_api('me/research/chapters') : null;
 $manuscript = $do === 'manuscript' ? portal_api('me/research/manuscript') : null;
 $state = (string) ($step['state'] ?? 'current');
 $tone = ['done' => 'green', 'attention' => 'rose', 'locked' => 'slate', 'waiting' => 'blue', 'current' => 'blue'][$state] ?? 'blue';
-$inPortal = in_array($do, ['chapters', 'manuscript'], true);
+$inPortal = empty($action['path']);
 
 portal_header($action['label'], $do, $user);
 ?>
