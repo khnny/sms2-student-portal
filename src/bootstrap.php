@@ -395,13 +395,23 @@ function portal_step_for_key(string $stepKey): string
     return portal_module('crad')['step_actions'][$stepKey] ?? 'chapters';
 }
 
+/** The optional uploaded file: null when none was chosen, else as portal_upload_from_request(). */
+function portal_optional_upload(string $field, int $maxMb, array $allowed)
+{
+    $f = $_FILES[$field] ?? null;
+    if (!is_array($f) || (int) ($f['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_NO_FILE) {
+        return null;
+    }
+    return portal_upload_from_request($field, $maxMb, $allowed);
+}
+
 /**
  * The uploaded file from this request, checked and ready to send to SMS 2,
  * or a message for the student. SMS 2 checks the file again on its side.
  *
  * @return CURLFile|string
  */
-function portal_upload_from_request(string $field, int $maxMb)
+function portal_upload_from_request(string $field, int $maxMb, array $allowed = ['pdf', 'doc', 'docx'])
 {
     $f = $_FILES[$field] ?? null;
     if (!is_array($f) || (int) ($f['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_NO_FILE) {
@@ -415,8 +425,8 @@ function portal_upload_from_request(string $field, int $maxMb)
     }
     $name = basename(str_replace('\\', '/', (string) $f['name']));
     $ext = strtolower(pathinfo($name, PATHINFO_EXTENSION));
-    if (!in_array($ext, ['pdf', 'doc', 'docx'], true)) {
-        return 'Please upload a PDF or Word file (.pdf, .doc, .docx).';
+    if (!in_array($ext, $allowed, true)) {
+        return 'Please upload a ' . implode(', ', array_map(static fn($x) => '.' . $x, $allowed)) . ' file.';
     }
     $mime = class_exists('finfo') ? ((new finfo(FILEINFO_MIME_TYPE))->file((string) $f['tmp_name']) ?: 'application/octet-stream') : 'application/octet-stream';
     return new CURLFile((string) $f['tmp_name'], $mime, $name);
