@@ -21,12 +21,12 @@ $actionHref = static function (array $step) use ($openKeys): ?string {
 portal_header('My research', 'research', $user);
 ?>
 <link rel="stylesheet" href="assets/css/research-statement.css?v=1">
-<link rel="stylesheet" href="assets/css/research-hub.css?v=1">
+<link rel="stylesheet" href="assets/css/research-hub.css?v=2">
 <?php if (is_array($statement) && !empty($statement['steps'])): ?>
     <?= smsRenderResearchHub($statement, '', $actionHref) ?>
     <p class="small text-muted mt-2"><i class="fa-solid fa-arrow-up-right-from-square me-1"></i>Uploads and forms open in SMS 2 in a new tab. Come back here and refresh to see the new status.</p>
 <?php else: ?>
     <?= portal_empty('Your research steps could not be loaded right now. Please refresh the page or try again later.') ?>
 <?php endif; ?>
-<script src="assets/js/research-hub.js?v=1" defer></script>
+<script src="assets/js/research-hub.js?v=2" defer></script>
 <?php portal_footer();
