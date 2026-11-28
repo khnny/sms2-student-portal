@@ -165,6 +165,37 @@ function portal_store_tokens(array $tokens): void
     }
 }
 
+/** Sign the student in after SMS 2 issued tokens (login form or SSO callback). */
+function portal_complete_login(array $tokens): void
+{
+    session_regenerate_id(true);
+    portal_store_tokens($tokens);
+    $user = $_SESSION['user'];
+    try {
+        portal_db()->prepare(
+            'INSERT INTO portal_users (user_id, student_id, name, email, last_login_at) VALUES (?, ?, ?, ?, NOW())
+             ON DUPLICATE KEY UPDATE student_id = VALUES(student_id), name = VALUES(name), email = VALUES(email), last_login_at = NOW()'
+        )->execute([(int) $user['id'], $user['student_id'] ? strtoupper((string) $user['student_id']) : null, (string) $user['name'], (string) $user['email']]);
+    } catch (Throwable $e) {
+        error_log('Portal user upsert failed: ' . $e->getMessage());
+    }
+}
+
+/**
+ * The visitor's IP, sent to SMS 2 so its login throttle counts each student separately.
+ * Behind the hosting proxy the last X-Forwarded-For entry is the one the proxy added.
+ */
+function portal_client_ip(): string
+{
+    $forwarded = array_filter(array_map('trim', explode(',', (string) ($_SERVER['HTTP_X_FORWARDED_FOR'] ?? ''))));
+    $candidate = $forwarded ? (string) end($forwarded) : '';
+    if ($candidate !== '' && filter_var($candidate, FILTER_VALIDATE_IP)) {
+        return $candidate;
+    }
+    $remote = (string) ($_SERVER['REMOTE_ADDR'] ?? '');
+    return filter_var($remote, FILTER_VALIDATE_IP) ? $remote : '';
+}
+
 function portal_logged_in(): bool
 {
     return !empty($_SESSION['tokens']['access']) && !empty($_SESSION['user']['id']);

@@ -2,7 +2,7 @@
 
 The student-facing portal for SMS 2. It runs as its **own app and deployment**. It never connects to the SMS 2 or CRAD database. Everything comes from the SMS 2 REST API:
 
-- **Login:** the student signs in with their SMS 2 account (JWT, via `login/sso-authorize.php` on SMS 2).
+- **Login:** the portal has its own login page. The student uses their SMS 2 account; the portal sends the password server-to-server to the SMS 2 API (`grant_type=password`), so SMS 2 still checks it with its lockout and Authenticator rules and the portal never stores passwords. Students with an Authenticator enter their 6-digit code (or an emailed code) on the portal too.
 - **Data:** REST API v1 (`me`, research, members, milestones, submissions, feedback, defenses, clearance, announcements, notifications).
 - **Live updates:** SMS 2 sends signed webhooks to `webhook.php`, for example "title approved", "defense rescheduled", "chapter reviewed" or "payment approved". Each one becomes a notification here.
 - **Actions not moved yet** (submitting chapters, progress updates, panel application, final manuscript, payment upload, clearance form) open the existing SMS 2 pages with the same login, through `open.php`.
@@ -15,7 +15,8 @@ The full contract is in the SMS 2 project: `docs/INTEGRATION-API.md`.
 |---|---|
 | `index.php` | Dashboard |
 | `research.php`, `defenses.php`, `clearance.php`, `announcements.php`, `notifications.php`, `profile.php` | Pages |
-| `login.php`, `callback.php`, `logout.php` | Sign-in through SMS 2 |
+| `login.php`, `logout.php` | Portal login page (password checked by SMS 2) and sign-out |
+| `callback.php` | Older SMS 2 single sign-on return page, kept for links that still use it |
 | `open.php` | Opens an SMS 2 student page with the same login |
 | `webhook.php` | Receives SMS 2 webhooks |
 | `src/bootstrap.php` | Session, API client, token refresh, portal database |
@@ -71,6 +72,6 @@ HostForge gives one database per app, so the portal is its **own app** with its 
 ## Security notes
 
 - Access tokens (15 minutes) and refresh tokens (8 hours, rotated) live only in the PHP session on this server.
-- The sign-in `state` is checked to stop login CSRF. Logout is a POST with a CSRF token, and it revokes the refresh token at SMS 2.
+- The login form has a CSRF token, and failed attempts are counted at SMS 2 per student IP (sent as `client_ip`) and per account. The SSO `state` is still checked on `callback.php`. Logout is a POST with a CSRF token, and it revokes the refresh token at SMS 2.
 - Webhooks must carry a valid HMAC signature and a fresh timestamp. Duplicate event ids are ignored.
 - `config/`, `src/`, `database/` and `storage/` are blocked from the web by `.htaccess`. Never commit `config/local.php`.

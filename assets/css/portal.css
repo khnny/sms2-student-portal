@@ -53,4 +53,14 @@ body { font-family: "Inter", "Segoe UI", Tahoma, sans-serif; background: var(--b
 .login-card { background: #fff; border-radius: 16px; padding: 2.5rem 2.25rem; width: min(420px, 92vw); text-align: center; box-shadow: 0 20px 50px rgba(0, 0, 0, .3); }
 .login-crest { width: 84px; height: 84px; object-fit: contain; margin-bottom: 1rem; }
 .login-card h1 { font-size: 1.6rem; font-weight: 700; color: var(--bcp-navy-deep); margin-bottom: .2rem; }
+.login-card .form-control, .login-card .input-group-text { border-color: #cbd5e1; }
+.login-card .input-group-text { background: #f8fafc; color: var(--muted); }
+.login-card .form-control:focus { border-color: var(--bcp-blue); box-shadow: 0 0 0 .2rem rgba(26, 111, 196, .15); }
+.login-card .btn-primary { background: var(--bcp-navy); border-color: var(--bcp-navy); font-weight: 600; }
+.login-card .btn-primary:hover, .login-card .btn-primary:focus { background: var(--bcp-navy-deep); border-color: var(--bcp-navy-deep); }
+.login-card a, .login-card .btn-link { color: var(--bcp-blue); text-decoration: none; }
+.login-card a:hover, .login-card .btn-link:hover { text-decoration: underline; }
+.login-step { display: flex; gap: .75rem; align-items: flex-start; padding: .75rem .9rem; border-radius: 10px; background: #eef4ff; border: 1px solid #d6e4ff; }
+.login-step i { color: var(--bcp-blue); font-size: 1.25rem; margin-top: .15rem; }
+.login-code { text-align: center; letter-spacing: .5em; font-weight: 600; font-variant-numeric: tabular-nums; }
 @media (max-width: 991.98px) { .portal-main { padding: 1.25rem 1rem 2.5rem; } }
