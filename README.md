@@ -6,24 +6,65 @@ The student-facing portal for SMS 2. It runs as its **own app and deployment**. 
 - **Data:** REST API v1 (`me`, research, members, milestones, submissions, feedback, defenses, clearance, announcements, notifications).
 - **Live updates:** SMS 2 sends signed webhooks to `webhook.php`, for example "title approved", "defense rescheduled", "chapter reviewed" or "payment approved". Each one becomes a notification here.
 - **Look:** same as the CRAD (SMS 2) student UI: top bar with clock, dark mode, notifications and user menu; grouped sidebar; Research Hub banner, progress ring and KPI tiles.
-- **Actions in the portal:** Chapters 1-3 and the final manuscript are uploaded on `step.php` through the SMS 2 API (`me/research/chapters`, `me/research/manuscript`; needs the matching SMS 2 update).
-- **Actions not moved yet** (title, research group, progress updates, panel application, payment upload, clearance form) show their status on `step.php`, then open the SMS 2 page in the same tab with the same login, through `open.php`.
+- **Actions in the portal:** every CRAD student step is done on `crad/step.php` through the SMS 2 API, so the student never has to open SMS 2: research group, title approval form, Chapters 1-3, progress updates, defense application, final manuscript, college payment and the signed research clearance (`me/research/*`; needs the matching SMS 2 update). CRAD officers, advisers, coordinators, panels and Admin still review everything in SMS 2.
 
 The full contract is in the SMS 2 project: `docs/INTEGRATION-API.md`.
+
+## Modules (one contract per module)
+
+The portal is the student's single front door for every SMS 2 module. Each module has **one folder for its code** and **one folder for its pages**, so modules never mix:
+
+```
+index.php (bulletin), dashboard.php, login.php, logout.php, notifications.php,
+profile.php, webhook.php, callback.php, open.php   shared portal pages
+
+crad/                        CRAD (Research) pages the student opens
+  index.php                    Research Workspace
+  step.php                     every CRAD step (step.php?do=group, proposal, chapters, ...)
+  defenses.php, clearance.php
+<module>/                    pages of the next module (Registrar, Payments, ...)
+
+src/core/                    shared code: bootstrap (session, API client, cache), layout, module loader
+src/modules/crad/            module.php (contract), steps/<step>.php (one form per step), research-hub.php
+src/modules/<module>/        module.php of each other module
+assets/css/crad/, assets/js/crad/   CSS and JS used only by CRAD
+```
+
+`src/modules/<key>/module.php` returns the module's label, sidebar entries, student actions, the API prefix it uses, the webhook events it owns and how those events read as notifications. The full contract is written at the top of `src/core/modules.php`.
+
+| Module | Code | Pages | Status |
+|---|---|---|---|
+| CRAD (Research) | `src/modules/crad/` | `crad/` | Live |
+| Registrar | `src/modules/registrar/` | (none yet) | Stub, `enabled => false` |
+| Payments | `src/modules/payment/` | (none yet) | Stub, `enabled => false` |
+| Accreditation | `src/modules/accreditation/` | (none yet) | Stub, `enabled => false` |
+
+To add a module: add its endpoints under its prefix in SMS 2 API v1 (and its webhook events), fill in `src/modules/<key>/module.php`, add its pages in `<key>/` (start each with `require_once __DIR__ . '/../src/core/bootstrap.php';` and the layout), then set `enabled` to `true`. The sidebar and webhook notifications pick it up automatically. Links in pages are relative to the portal root (the layout sets `<base href>`), so write `crad/step.php?do=group`, not `step.php?do=group`.
+
+The old root links `research.php`, `step.php`, `defenses.php` and `clearance.php` still work: they redirect to `crad/`.
+
+## When SMS 2 is down
+
+Every successful read from the API is saved per student in `portal_api_cache`. If SMS 2 cannot be reached (no connection or a 5xx error), the portal shows that saved data with a banner giving the time it was last updated. Uploads and forms are not queued: the student is told nothing was sent and to try again later.
 
 ## Files
 
 | Path | What it is |
 |---|---|
-| `index.php` | Dashboard |
-| `research.php`, `defenses.php`, `clearance.php`, `announcements.php`, `notifications.php`, `profile.php` | Pages |
+| `index.php` | Announcement Bulletin (home page, shown first after sign-in) |
+| `dashboard.php` | Dashboard |
+| `notifications.php`, `profile.php` | Shared pages |
+| `announcements.php` | Redirect to `index.php` (old address) |
 | `login.php`, `logout.php` | Portal login page (password checked by SMS 2) and sign-out |
 | `callback.php` | Older SMS 2 single sign-on return page, kept for links that still use it |
-| `step.php` | One CRAD step in the portal: chapter and manuscript upload, status of the other steps |
-| `open.php` | Opens an SMS 2 student page with the same login, same tab |
+| `crad/` | CRAD pages: `index.php` (Research Workspace), `step.php` (every step), `defenses.php`, `clearance.php` |
+| `research.php`, `step.php`, `defenses.php`, `clearance.php` | Old links, redirect to `crad/` |
+| `open.php` | Opens an SMS 2 page with the same login, for a module action that is not in the portal yet (none for CRAD now) |
 | `webhook.php` | Receives SMS 2 webhooks |
-| `src/bootstrap.php` | Session, API client, token refresh, portal database |
-| `src/layout.php` | Page layout |
+| `src/core/bootstrap.php` | Session, API client, token refresh, last-known-status cache, portal database |
+| `src/core/modules.php` | Module registry (the contract every module follows) |
+| `src/core/layout.php` | Page layout |
+| `src/modules/<key>/` | One folder per module: `module.php`, and for CRAD `steps/*.php` and `research-hub.php` |
 | `config/config.php`, `config/local.example.php` | Settings |
 | `database/portal_db.sql` | Portal tables (created automatically) |
 

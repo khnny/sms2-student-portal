@@ -1,5 +1,5 @@
 <?php
-/** Final manuscript upload form (included by step.php). Uses $manuscript from GET me/research/manuscript. */
+/** Final manuscript upload form (included by crad/step.php). Uses $manuscript from GET me/research/manuscript. */
 ?>
 <section class="portal-card mb-3">
     <div class="d-flex align-items-center gap-3 mb-3">
@@ -29,7 +29,7 @@
                 <textarea class="form-control" id="notes" name="notes" rows="3" maxlength="2000"></textarea>
             </div>
             <div class="d-flex gap-2 justify-content-end">
-                <a href="research.php" class="btn btn-soft">Cancel</a>
+                <a href="crad/index.php" class="btn btn-soft">Cancel</a>
                 <button class="btn btn-primary" type="submit"><i class="fa-solid fa-paper-plane me-1"></i>Submit manuscript</button>
             </div>
         </form>

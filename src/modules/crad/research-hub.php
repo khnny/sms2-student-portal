@@ -120,7 +120,7 @@ function smsHubTitle(array $step): string
         'registry' => 'Group number',
         'chapters' => 'Chapters 1 to 3',
         'progress' => 'Progress updates',
-        'defense' => 'Panel & defense',
+        'defense' => 'Defense application',
         'manuscript' => 'Final manuscript',
         'clearance' => 'Payment & clearance',
     ][$step['key']] ?? (string) $step['title'];
@@ -274,7 +274,80 @@ function smsHubFacts(array $step, int $max = 3): array
  *        step actions open that URL in a new tab instead of a pop-up (used by the
  *        separate Student Portal, which cannot show SMS 2 pages inside a pop-up).
  */
-function smsRenderResearchHub(array $st, string $baseUrl, ?callable $actionHref = null): string
+/**
+ * Column span (out of 6) for each step card, in step order.
+ * Cards with long content take the full row (6). The short cards between them
+ * fill their rows with no gaps: 3 per row (2 each), and a leftover 2 or 4 is
+ * shown 2 per row (3 each). A short card left alone shares its row with the
+ * next (or previous) long card: 2 + 4.
+ */
+function smsHubSpans(array $steps, array $summary): array
+{
+    $long = [];
+    foreach ($steps as $i => $step) {
+        $hs = smsHubState($step['state']);
+        if ($hs === 'locked') {
+            $long[$i] = false;
+            continue;
+        }
+        $highlight = smsHubHighlight($step);
+        $text = strip_tags($highlight) . ' ' . ($highlight === '' ? (string) $step['summary'] : '');
+        foreach (smsHubFacts($step, $highlight !== '' ? 2 : 3) as [$label, $value]) {
+            $text .= ' ' . $label . ' ' . $value;
+        }
+        if (!empty($step['remarks'][0]['text'])) {
+            $text .= ' ' . mb_strimwidth((string) $step['remarks'][0]['text'], 0, 160) . ' ' . $step['remarks'][0]['from'];
+        }
+        if ($step['key'] === 'title') {
+            $text .= ' ' . ($summary['research_title'] ?? '');
+        }
+        $long[$i] = mb_strlen(trim(preg_replace('/\s+/', ' ', $text))) > 120;
+    }
+    $spans = [];
+    $run = [];
+    $flush = static function () use (&$run, &$spans): void {
+        $n = count($run);
+        foreach ($run as $k => $idx) {
+            $spans[$idx] = 2;
+        }
+        if ($n === 1) {
+            $spans[$run[0]] = 6; // may pair with a long neighbour below
+        } elseif ($n % 3 === 2) {
+            $spans[$run[$n - 1]] = $spans[$run[$n - 2]] = 3;
+        } elseif ($n % 3 === 1) {
+            foreach (array_slice($run, -4) as $idx) {
+                $spans[$idx] = 3;
+            }
+        }
+        $run = [];
+    };
+    foreach ($steps as $i => $step) {
+        if ($long[$i]) {
+            $flush();
+            $spans[$i] = 6;
+        } else {
+            $run[] = $i;
+        }
+    }
+    $flush();
+    // Pair each lone short card with a long neighbour that is not yet paired.
+    $n = count($steps);
+    for ($i = 0; $i < $n; $i++) {
+        if ($long[$i] || $spans[$i] !== 6) {
+            continue;
+        }
+        foreach ([$i + 1, $i - 1] as $j) {
+            if ($j >= 0 && $j < $n && $long[$j] && $spans[$j] === 6) {
+                $spans[$i] = 2;
+                $spans[$j] = 4;
+                break;
+            }
+        }
+    }
+    return $spans;
+}
+
+function smsRenderResearchHub(array $st, string $baseUrl, ?callable $actionHref = null, bool $withHero = true): string
 {
     $s = $st['summary'];
     $student = $st['student'];
@@ -329,6 +402,7 @@ function smsRenderResearchHub(array $st, string $baseUrl, ?callable $actionHref 
     ob_start();
     ?>
 <div class="rh" id="researchHub">
+    <?php if ($withHero): ?>
     <section class="rh-hero2">
         <img class="rh-wm" src="<?= 'assets/img/bcp-crest.png' ?>" alt="" onerror="this.remove()">
         <div class="rh-hero-main">
@@ -371,6 +445,7 @@ function smsRenderResearchHub(array $st, string $baseUrl, ?callable $actionHref 
             <?php endif; ?>
         </div>
     </section>
+    <?php endif; ?>
 
     <div class="rh-legend">
         <h2>CRAD process</h2>
@@ -379,16 +454,16 @@ function smsRenderResearchHub(array $st, string $baseUrl, ?callable $actionHref 
         <?php endforeach; ?>
     </div>
 
+    <?php $spans = smsHubSpans($steps, $s); ?>
     <div class="rh-grid">
-    <?php foreach ($steps as $step):
+    <?php foreach ($steps as $i => $step):
         $hs = smsHubState($step['state']);
         $isNext = $next && $next['key'] === $step['key'];
         $highlight = $hs === 'locked' ? '' : smsHubHighlight($step);
         $facts = $hs === 'locked' ? [] : smsHubFacts($step, $highlight !== '' ? 2 : 3);
-        $wide = $isNext || in_array($step['key'], ['chapters', 'defense', 'title'], true) && $hs !== 'locked';
         $remark = $step['remarks'][0] ?? null;
         ?>
-        <article class="rh-card rh-<?= $hs ?><?= $wide ? ' rh-wide' : '' ?><?= $isNext ? ' rh-is-next' : '' ?>" id="rh-step-<?= smsRsEsc($step['key']) ?>">
+        <article class="rh-card rh-<?= $hs ?> rh-span-<?= $spans[$i] ?><?= $isNext ? ' rh-is-next' : '' ?>" id="rh-step-<?= smsRsEsc($step['key']) ?>">
             <header class="rh-card-head">
                 <span class="rh-step-ic"><i class="<?= smsRsEsc(smsHubIconClass($hs === 'locked' ? 'lock' : smsHubStepIcon($step))) ?>" aria-hidden="true"></i></span>
                 <h3><small>Step <?= (int) $step['no'] ?></small><?= smsRsEsc(smsHubTitle($step)) ?></h3>

@@ -7,7 +7,7 @@
  * Each event becomes a notification for the students it names.
  */
 declare(strict_types=1);
-require_once __DIR__ . '/src/bootstrap.php';
+require_once __DIR__ . '/src/core/bootstrap.php';
 
 header('Content-Type: application/json; charset=utf-8');
 
@@ -49,7 +49,12 @@ if ($insert->rowCount() === 0) {
     webhook_reply(200, ['ok' => true, 'duplicate' => true]);
 }
 
-[$title, $text] = portal_webhook_message((string) $event['type'], is_array($event['data'] ?? null) ? $event['data'] : []);
+// The module that owns this event type (src/modules/*.php) writes the notification text.
+$module = portal_module_for_event((string) $event['type']);
+$message = $module && is_callable($module['message'])
+    ? ($module['message'])((string) $event['type'], is_array($event['data'] ?? null) ? $event['data'] : [])
+    : null;
+[$title, $text] = $message ?? ['SMS 2 update', 'There is an update on your account.'];
 
 $studentIds = array_map('strtoupper', array_filter(array_map('strval', $event['subjects']['student_ids'] ?? []), 'strlen'));
 $userIds = array_filter(array_map('intval', $event['subjects']['user_ids'] ?? []));
@@ -74,32 +79,3 @@ foreach ($studentIds ? [] : array_unique($userIds) as $uid) {
 }
 
 webhook_reply(200, ['ok' => true]);
-
-/** @return array{0: string, 1: string} */
-function portal_webhook_message(string $type, array $d): array
-{
-    $when = static fn($iso) => $iso ? date('M j, Y g:i A', strtotime((string) $iso) ?: time()) : 'a date to be announced';
-    switch ($type) {
-        case 'research.title_status_changed':
-            return ['Title status: ' . ($d['status'] ?? 'updated'), 'Your research title "' . ($d['title'] ?? '') . '" is now ' . ($d['status'] ?? 'updated') . '.'];
-        case 'research.adviser_assigned':
-            return ['Adviser assigned', ($d['adviser'] ?? 'An adviser') . ' is now the adviser of group ' . ($d['group_number'] ?? '') . '.'];
-        case 'submission.reviewed':
-            if (($d['source'] ?? '') === 'chapter') {
-                return ['Chapter ' . ($d['chapter'] ?? '') . ' reviewed', 'Chapter ' . ($d['chapter'] ?? '') . ' (version ' . ($d['version'] ?? '') . ') is now ' . ($d['status'] ?? 'reviewed') . '.'];
-            }
-            return ['New adviser feedback', ($d['from'] ?? 'Your adviser') . ' left feedback on "' . ($d['update_title'] ?? 'your progress update') . '".'];
-        case 'defense.scheduled':
-            return [($d['defense_type'] ?? 'Defense') . ' scheduled', 'Your ' . ($d['defense_type'] ?? 'defense') . ' is set for ' . $when($d['starts_at'] ?? null) . ' at ' . ($d['venue'] ?? 'a venue to be announced') . '.'];
-        case 'defense.rescheduled':
-            return [($d['defense_type'] ?? 'Defense') . ' rescheduled', 'Your ' . ($d['defense_type'] ?? 'defense') . ' moved to ' . $when($d['starts_at'] ?? null) . ' at ' . ($d['venue'] ?? 'a venue to be announced') . '.'];
-        case 'defense.status_changed':
-            return ['Defense status: ' . ($d['status'] ?? 'updated'), 'Your ' . ($d['defense_type'] ?? 'defense') . ' is now ' . ($d['status'] ?? 'updated') . '.'];
-        case 'clearance.status_changed':
-            $what = ($d['kind'] ?? '') === 'payment' ? 'payment' : 'research clearance';
-            return [ucfirst($what) . ': ' . ($d['status'] ?? 'updated'), 'Your ' . $what . ' (' . str_replace('_', ' ', (string) ($d['stage'] ?? '')) . ') is now ' . ($d['status'] ?? 'updated') . '.'];
-        case 'manuscript.final_approved':
-            return ['Final manuscript approved', 'Your final manuscript was approved' . (!empty($d['approved_by']) ? ' by ' . $d['approved_by'] : '') . '.'];
-    }
-    return ['Research update', 'There is an update on your research.'];
-}

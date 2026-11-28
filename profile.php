@@ -1,8 +1,8 @@
 <?php
 /** Student profile from SMS 2 (Registrar data). */
 declare(strict_types=1);
-require_once __DIR__ . '/src/bootstrap.php';
-require_once __DIR__ . '/src/layout.php';
+require_once __DIR__ . '/src/core/bootstrap.php';
+require_once __DIR__ . '/src/core/layout.php';
 $user = portal_require_login();
 $me = portal_api('me') ?? [];
 $p = $me['profile'] ?? [];

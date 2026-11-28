@@ -7,7 +7,8 @@
  */
 declare(strict_types=1);
 
-require_once __DIR__ . '/../config/config.php';
+require_once __DIR__ . '/../../config/config.php';
+require_once __DIR__ . '/modules.php';
 
 if (session_status() === PHP_SESSION_NONE && PHP_SAPI !== 'cli') {
     $https = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
@@ -42,6 +43,15 @@ function portal_base_url(): string
         $host = 'localhost';
     }
     $dir = rtrim(str_replace('\\', '/', dirname((string) ($_SERVER['SCRIPT_NAME'] ?? '/'))), '/');
+    // Pages of a module live one folder down (e.g. crad/step.php): the portal root is its parent.
+    $root = str_replace('\\', '/', (string) realpath(__DIR__ . '/../..'));
+    $scriptDir = str_replace('\\', '/', (string) realpath(dirname((string) ($_SERVER['SCRIPT_FILENAME'] ?? ''))));
+    if ($root !== '' && $scriptDir !== '' && str_starts_with($scriptDir, $root . '/')) {
+        $sub = substr($scriptDir, strlen($root));
+        if (str_ends_with($dir, $sub)) {
+            $dir = substr($dir, 0, -strlen($sub));
+        }
+    }
     return ($https ? 'https' : 'http') . '://' . $host . $dir;
 }
 
@@ -113,7 +123,7 @@ function portal_db(): PDO
         $server->exec('CREATE DATABASE IF NOT EXISTS `' . str_replace('`', '', PORTAL_DB_NAME) . '` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci');
         $pdo = new PDO($dsn . ';dbname=' . PORTAL_DB_NAME, PORTAL_DB_USER, PORTAL_DB_PASS, $options);
     }
-    $sql = preg_replace('/^\s*--.*$/m', '', (string) file_get_contents(__DIR__ . '/../database/portal_db.sql'));
+    $sql = preg_replace('/^\s*--.*$/m', '', (string) file_get_contents(__DIR__ . '/../../database/portal_db.sql'));
     foreach (array_filter(array_map('trim', explode(';', (string) $sql))) as $statement) {
         if (stripos($statement, 'CREATE TABLE') !== false) {
             $pdo->exec($statement);
@@ -238,6 +248,10 @@ function portal_access_token(): ?string
         'grant_type' => 'refresh_token',
         'refresh_token' => (string) $tokens['refresh'],
     ]);
+    if ($res['status'] === 0 || $res['status'] >= 500) {
+        // SMS 2 is down: keep the student signed in so the last known status can still be shown.
+        return (string) $tokens['access'];
+    }
     if ($res['status'] !== 200 || empty($res['body']['access_token'])) {
         return null;
     }
@@ -261,6 +275,22 @@ function portal_api(string $path, string $method = 'GET', ?array $form = null)
         portal_redirect(portal_url('login.php'));
     }
     $res = portal_http($method, PORTAL_API_URL . '/' . ltrim($path, '/'), ['Authorization: Bearer ' . $token], $form);
+    if ($res['status'] === 0 || $res['status'] >= 500) {
+        // SMS 2 is down or unreachable: show the last status we saw, and say how old it is.
+        error_log('Portal API ' . $method . ' ' . $path . ' unreachable: HTTP ' . $res['status'] . ' ' . $res['error']);
+        $GLOBALS['portal_offline'] = true;
+        if ($method !== 'GET') {
+            $GLOBALS['portal_api_last_error'] = 'SMS 2 cannot be reached right now, so nothing was sent. Please try again in a few minutes.';
+            return null;
+        }
+        $cached = portal_cache_get($path);
+        if ($cached !== null) {
+            $GLOBALS['portal_stale_at'] = min($GLOBALS['portal_stale_at'] ?? PHP_INT_MAX, $cached['at']);
+            return $cached['data'];
+        }
+        $GLOBALS['portal_api_errors'][] = $path;
+        return null;
+    }
     if ($res['status'] === 401) {
         portal_end_session();
         session_start();
@@ -277,7 +307,52 @@ function portal_api(string $path, string $method = 'GET', ?array $form = null)
         $GLOBALS['portal_api_errors'][] = $path;
         return null;
     }
+    if ($method === 'GET') {
+        portal_cache_put($path, $res['body']['data']);
+    }
     return $res['body']['data'];
+}
+
+/* -------------------------------------------------------- last known status */
+
+/**
+ * Each successful GET is kept per student in the portal database, so when SMS 2
+ * is down the portal can still show the last known status (marked as old).
+ */
+function portal_cache_put(string $path, $data): void
+{
+    $uid = (int) ($_SESSION['user']['id'] ?? 0);
+    if ($uid <= 0) {
+        return;
+    }
+    try {
+        portal_db()->prepare(
+            'INSERT INTO portal_api_cache (user_id, path, body, fetched_at) VALUES (?, ?, ?, NOW())
+             ON DUPLICATE KEY UPDATE body = VALUES(body), fetched_at = NOW()'
+        )->execute([$uid, mb_substr($path, 0, 190), json_encode($data, JSON_UNESCAPED_UNICODE)]);
+    } catch (Throwable $e) {
+        error_log('Portal cache write failed: ' . $e->getMessage());
+    }
+}
+
+/** @return array{data: mixed, at: int}|null */
+function portal_cache_get(string $path): ?array
+{
+    $uid = (int) ($_SESSION['user']['id'] ?? 0);
+    if ($uid <= 0) {
+        return null;
+    }
+    try {
+        $stmt = portal_db()->prepare('SELECT body, fetched_at FROM portal_api_cache WHERE user_id = ? AND path = ?');
+        $stmt->execute([$uid, mb_substr($path, 0, 190)]);
+        $row = $stmt->fetch();
+    } catch (Throwable $e) {
+        return null;
+    }
+    if (!$row) {
+        return null;
+    }
+    return ['data' => json_decode((string) $row['body'], true), 'at' => (int) strtotime((string) $row['fetched_at'])];
 }
 
 /* ------------------------------------------------------------ notifications */
@@ -314,31 +389,29 @@ function portal_unread_count(array $user): int
 }
 
 /**
- * Links that open an existing SMS 2 student page (actions not yet moved to the API).
- * Keys are fixed: the portal cannot be used to open arbitrary pages.
+ * Student actions of every enabled module (src/modules/*.php), keyed by action key.
+ * An action with a 'path' still opens that SMS 2 page (open.php); keys are fixed,
+ * so the portal cannot be used to open arbitrary pages.
  */
 function portal_sms2_actions(): array
 {
-    return [
-        'proposal' => ['label' => 'Research proposal / title', 'icon' => 'fa-file-signature', 'path' => '/modules/student-portal/pages/research-proposal-submission.php'],
-        'group' => ['label' => 'Research group', 'icon' => 'fa-users', 'path' => '/modules/student-portal/pages/research-group.php'],
-        'chapters' => ['label' => 'Submit chapters', 'icon' => 'fa-file-arrow-up', 'path' => '/modules/student-portal/pages/submit-chapters.php'],
-        'progress' => ['label' => 'Progress updates', 'icon' => 'fa-chart-line', 'path' => '/modules/student-portal/pages/progress-updates.php'],
-        'panel' => ['label' => 'Panel application', 'icon' => 'fa-people-group', 'path' => '/modules/student-portal/pages/panel-application.php'],
-        'manuscript' => ['label' => 'Final manuscript', 'icon' => 'fa-book', 'path' => '/modules/student-portal/pages/final-manuscript.php'],
-        'payment' => ['label' => 'Upload college payment', 'icon' => 'fa-receipt', 'path' => '/modules/student-portal/pages/college-payment.php'],
-        'clearance' => ['label' => 'Research clearance', 'icon' => 'fa-clipboard-check', 'path' => '/modules/student-portal/pages/research-clearance.php'],
-    ];
+    return portal_module_actions();
 }
 
 /** Map a research-statement step key to its in-portal action page (step.php?do=...). */
 function portal_step_for_key(string $stepKey): string
 {
-    return [
-        'group' => 'group', 'assignment' => 'group', 'title' => 'proposal', 'registry' => 'group',
-        'chapters' => 'chapters', 'progress' => 'progress', 'defense' => 'panel',
-        'manuscript' => 'manuscript', 'clearance' => 'clearance',
-    ][$stepKey] ?? 'chapters';
+    return portal_module('crad')['step_actions'][$stepKey] ?? 'chapters';
+}
+
+/** The optional uploaded file: null when none was chosen, else as portal_upload_from_request(). */
+function portal_optional_upload(string $field, int $maxMb, array $allowed)
+{
+    $f = $_FILES[$field] ?? null;
+    if (!is_array($f) || (int) ($f['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_NO_FILE) {
+        return null;
+    }
+    return portal_upload_from_request($field, $maxMb, $allowed);
 }
 
 /**
@@ -347,7 +420,7 @@ function portal_step_for_key(string $stepKey): string
  *
  * @return CURLFile|string
  */
-function portal_upload_from_request(string $field, int $maxMb)
+function portal_upload_from_request(string $field, int $maxMb, array $allowed = ['pdf', 'doc', 'docx'])
 {
     $f = $_FILES[$field] ?? null;
     if (!is_array($f) || (int) ($f['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_NO_FILE) {
@@ -361,8 +434,8 @@ function portal_upload_from_request(string $field, int $maxMb)
     }
     $name = basename(str_replace('\\', '/', (string) $f['name']));
     $ext = strtolower(pathinfo($name, PATHINFO_EXTENSION));
-    if (!in_array($ext, ['pdf', 'doc', 'docx'], true)) {
-        return 'Please upload a PDF or Word file (.pdf, .doc, .docx).';
+    if (!in_array($ext, $allowed, true)) {
+        return 'Please upload a ' . implode(', ', array_map(static fn($x) => '.' . $x, $allowed)) . ' file.';
     }
     $mime = class_exists('finfo') ? ((new finfo(FILEINFO_MIME_TYPE))->file((string) $f['tmp_name']) ?: 'application/octet-stream') : 'application/octet-stream';
     return new CURLFile((string) $f['tmp_name'], $mime, $name);

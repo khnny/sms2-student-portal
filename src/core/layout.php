@@ -4,31 +4,19 @@ declare(strict_types=1);
 
 function portal_header(string $title, string $active, array $user): void
 {
-    // Sidebar, grouped like the CRAD (SMS 2) student sidebar.
-    $nav = [
-        ['index', 'Dashboard', 'fa-gauge'],
-        ['research', 'Research Workspace', 'fa-flask'],
-        ['group' => 'Research Steps', 'icon' => 'fa-list-check', 'items' => [
-            ['step.php?do=group', 'Research group', 'fa-user-group'],
-            ['step.php?do=proposal', 'Title approval', 'fa-file-signature'],
-            ['step.php?do=chapters', 'Submit chapters', 'fa-file-arrow-up'],
-            ['step.php?do=progress', 'Progress updates', 'fa-chart-line'],
-            ['step.php?do=manuscript', 'Final manuscript', 'fa-book'],
-        ]],
-        ['group' => 'Panel & Defense', 'icon' => 'fa-chalkboard-user', 'items' => [
-            ['step.php?do=panel', 'Panel application', 'fa-people-group'],
-            ['defenses', 'Defense schedule', 'fa-calendar-check'],
-        ]],
-        ['group' => 'Financial', 'icon' => 'fa-wallet', 'items' => [
-            ['step.php?do=payment', 'Upload college payment', 'fa-receipt'],
-            ['clearance', 'Clearance & payment', 'fa-clipboard-check'],
-        ]],
-        ['announcements', 'Announcement Bulletin', 'fa-bullhorn'],
-        ['notifications', 'Notifications', 'fa-bell'],
-        ['profile', 'My profile', 'fa-id-card'],
-    ];
+    // Sidebar, grouped like the CRAD (SMS 2) student sidebar. Each enabled
+    // module (src/modules/*.php) adds its own entries between Dashboard and the rest.
+    // The Announcement Bulletin comes first: it is the page students land on after sign-in.
+    $nav = array_merge(
+        [['index', 'Announcement Bulletin', 'fa-bullhorn'], ['dashboard', 'Dashboard', 'fa-gauge']],
+        portal_module_nav(),
+        [
+            ['notifications', 'Notifications', 'fa-bell'],
+            ['profile', 'My profile', 'fa-id-card'],
+        ]
+    );
     $isActive = static function (string $key) use ($active): bool {
-        return $key === $active || $key === 'step.php?do=' . $active;
+        return $key === $active;
     };
     $href = static fn(string $key): string => str_contains($key, '.php') ? $key : $key . '.php';
     $flash = portal_flash();
@@ -45,6 +33,7 @@ function portal_header(string $title, string $active, array $user): void
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title><?= e($title) ?> · <?= e(PORTAL_APP_NAME) ?></title>
+    <base href="<?= e(portal_base_url()) ?>/"><?php /* links are relative to the portal root, also from module folders like crad/ */ ?>
     <script>try{var t=localStorage.getItem('portal-theme');if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
     <link rel="stylesheet" href="assets/vendor/bootstrap/bootstrap.min.css">
     <link rel="stylesheet" href="assets/vendor/fontawesome/css/all.min.css">
@@ -100,10 +89,13 @@ function portal_header(string $title, string $active, array $user): void
 </nav>
 <div class="sp-content">
     <main class="sp-main">
-        <nav class="sp-crumbs" aria-label="breadcrumb"><a href="index.php"><i class="fa-solid fa-house"></i></a><span>/</span><a href="index.php">Student Portal</a><span>/</span><b><?= e($active === 'index' ? 'Dashboard' : $title) ?></b></nav>
-        <?php if ($active !== 'research'): ?><h1 class="sp-title"><?= e($title) ?></h1><?php endif; ?>
+        <nav class="sp-crumbs" aria-label="breadcrumb"><a href="index.php"><i class="fa-solid fa-house"></i></a><span>/</span><a href="index.php">Student Portal</a><span>/</span><b><?= e($active === 'index' ? 'Announcement Bulletin' : $title) ?></b></nav>
+        <?php if ($active !== 'crad/index.php'): ?><h1 class="sp-title"><?= e($title) ?></h1><?php endif; ?>
         <?php if ($flash): ?>
             <div class="alert alert-<?= e($flash['type']) ?>"><?= e($flash['message']) ?></div>
+        <?php endif; ?>
+        <?php if (!empty($GLOBALS['portal_stale_at'])): ?>
+            <div class="alert alert-warning d-flex gap-2"><i class="fa-solid fa-plug-circle-exclamation mt-1"></i><span>SMS 2 cannot be reached right now. You are seeing your last known status from <b><?= e(date('M j, Y g:i A', (int) $GLOBALS['portal_stale_at'])) ?></b>. Uploads and forms will work again once it is back.</span></div>
         <?php endif; ?>
     <?php
 }
@@ -111,7 +103,9 @@ function portal_header(string $title, string $active, array $user): void
 function portal_footer(): void
 {
     if (!empty($GLOBALS['portal_api_errors'])) {
-        echo '<div class="alert alert-warning mt-4 small">Some information could not be loaded from SMS 2 right now. Refresh the page to try again.</div>';
+        echo '<div class="alert alert-warning mt-4 small">' . (!empty($GLOBALS['portal_offline'])
+            ? 'SMS 2 cannot be reached right now and there is no saved status for some parts of this page yet. Please try again later.'
+            : 'Some information could not be loaded from SMS 2 right now. Refresh the page to try again.') . '</div>';
     }
     ?>
     </main>
@@ -145,4 +139,27 @@ function portal_status_badge(?string $status): string
 function portal_empty(string $text): string
 {
     return '<p class="text-muted mb-0"><i class="fa-regular fa-folder-open me-2"></i>' . e($text) . '</p>';
+}
+
+/** Card heading used by the step forms (src/modules/<key>/steps/*.php). */
+function portal_step_head(string $icon, string $title, string $tone, ?array $step, string $fallback): string
+{
+    return '<div class="d-flex align-items-center gap-3 mb-3"><span class="sp-ic ' . e($tone) . '"><i class="fa-solid ' . e($icon) . '"></i></span>'
+        . '<div class="flex-grow-1"><div class="small text-muted fw-semibold text-uppercase">' . e($step ? 'Step ' . $step['no'] : $fallback) . '</div>'
+        . '<div class="fw-bold fs-5" style="color:var(--ink)">' . e($title) . '</div></div>' . portal_status_badge($step['status'] ?? null) . '</div>';
+}
+
+function portal_note(string $text, string $icon = 'fa-circle-info', string $class = ''): string
+{
+    return '<div class="sp-note ' . e($class) . '"><i class="fa-solid ' . e($icon) . ' mt-1"></i><span>' . e($text) . '</span></div>';
+}
+
+/** File picker in the portal's drop-zone style. */
+function portal_file_field(string $name, string $label, string $accept, string $hint, bool $required = true, ?string $id = null): string
+{
+    $id = $id ?? $name;
+    return '<div class="mb-3"><label class="form-label" for="' . e($id) . '">' . e($label) . '</label>'
+        . '<label class="sp-drop d-block" for="' . e($id) . '"><i class="fa-solid fa-cloud-arrow-up d-block"></i>'
+        . '<b style="color:var(--ink)">Choose a file</b><br><span class="small">' . e($hint) . '</span><br><span class="small fw-semibold" data-file-name>No file selected</span></label>'
+        . '<input class="visually-hidden" type="file" id="' . e($id) . '" name="' . e($name) . '" accept="' . e($accept) . '"' . ($required ? ' required' : '') . '></div>';
 }

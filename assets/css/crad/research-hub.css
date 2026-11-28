@@ -57,9 +57,17 @@
 .rh-locked { --rh-c: var(--rh-locked); --rh-bg: var(--rh-locked-bg); }
 
 /* Collage */
-.rh-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-auto-flow: row dense; gap: 0.75rem; align-items: start; }
+.rh-grid { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); grid-auto-flow: row; gap: 0.9rem; align-items: stretch; }
 .rh-card { background: var(--rh-paper); border: 1px solid var(--rh-line); border-top: 4px solid var(--rh-c); border-radius: 14px; padding: 0.85rem 0.9rem; display: flex; flex-direction: column; gap: 0.5rem; min-width: 0; }
-.rh-card.rh-wide { grid-column: span 2; }
+/* Cards stay in step order. Spans come from smsHubSpans(): long cards take the
+   full row, short cards fill their rows with no gaps; each row shares one height. */
+.rh-span-2 { grid-column: span 2; }
+.rh-span-3 { grid-column: span 3; }
+.rh-span-4 { grid-column: span 4; }
+.rh-span-6 { grid-column: 1 / -1; }
+/* A full-row card lays its details out side by side. */
+.rh-span-4 .rh-facts, .rh-span-6 .rh-facts { grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
+.rh-span-4 .rh-checks, .rh-span-6 .rh-checks { grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: .15rem 1rem; }
 .rh-card.rh-is-next { box-shadow: 0 0 0 3px var(--rh-bg); }
 .rh-card.rh-locked { background: var(--rh-soft); }
 .rh-card-head { display: flex; align-items: center; gap: 0.6rem; }
@@ -106,14 +114,13 @@
 .rh-modal-loading { position: absolute; inset: 0; display: grid; place-items: center; color: var(--rh-muted); }
 body.rh-modal-open { overflow: hidden; }
 
-@media (min-width: 1600px) { .rh-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
-@media (max-width: 1100px) { .rh-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 1100px) { .rh-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .rh-span-2, .rh-span-3, .rh-span-4 { grid-column: auto; } }
 @media (max-width: 760px) {
     .rh-hero { grid-template-columns: minmax(0, 1fr); }
 }
 @media (max-width: 560px) {
     .rh-grid { grid-template-columns: minmax(0, 1fr); }
-    .rh-card.rh-wide { grid-column: auto; }
+    .rh-span-2, .rh-span-3, .rh-span-4, .rh-span-6 { grid-column: auto; }
     .rh-legend span { font-size: 0.72rem; }
     .rh-modal { padding: 0; }
     .rh-modal-box, .rh-modal--frame .rh-modal-box { width: 100%; height: 100%; max-height: none; border-radius: 0; }
@@ -174,3 +181,5 @@ body.rh-modal-open { overflow: hidden; }
     .rh-kpi2 b { white-space: normal; font-size: .82rem; }
     .rh-kpi2-ic { width: 32px; height: 32px; font-size: 1rem; }
 }
+/* Keep Details and the action button on the bottom line of every card in a row. */
+.rh-card > .rh-card-foot { margin-top: auto; padding-top: .7rem; min-height: 4.2rem; }

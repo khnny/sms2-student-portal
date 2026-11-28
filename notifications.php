@@ -1,8 +1,8 @@
 <?php
 /** Notifications: live CRAD updates received by webhook, plus the SMS 2 notification list. */
 declare(strict_types=1);
-require_once __DIR__ . '/src/bootstrap.php';
-require_once __DIR__ . '/src/layout.php';
+require_once __DIR__ . '/src/core/bootstrap.php';
+require_once __DIR__ . '/src/core/layout.php';
 $user = portal_require_login();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && portal_csrf_ok()) {
