@@ -1,11 +1,11 @@
 <?php
-/** Panel application (included by step.php). Uses $data from GET me/research/panel. */
+/** Defense application (CRAD calls the table "panel requests") (included by step.php). Uses $data from GET me/research/panel. */
 $app = $data['application'] ?? null;
 ?>
 <section class="portal-card">
-    <?= portal_step_head('fa-people-group', 'Panel application', $tone, $step, 'Panel & defense') ?>
+    <?= portal_step_head('fa-people-group', 'Defense application', $tone, $step, 'Defense') ?>
     <?php if (!is_array($data)): ?>
-        <?= portal_empty('Your panel application could not be loaded right now. Please refresh the page.') ?>
+        <?= portal_empty('Your defense application could not be loaded right now. Please refresh the page.') ?>
     <?php elseif (empty($data['available']) || !$app): ?>
         <?= portal_note($data['message'] ?? 'Not available yet.', 'fa-lock') ?>
     <?php else: ?>
@@ -41,8 +41,8 @@ $app = $data['application'] ?? null;
             <h3 class="h6 fw-bold mt-4">3. Submit</h3>
             <form method="post" action="<?= e($self) ?>">
                 <?= portal_csrf_field() ?><input type="hidden" name="action" value="submit">
-                <?= portal_note('Submit once the details are saved and both documents are uploaded. CRAD reviews it in SMS 2.') ?>
-                <div class="text-end mt-3"><button class="btn btn-primary" type="submit"><i class="fa-solid fa-paper-plane me-1"></i>Submit application</button></div>
+                <?= portal_note('Submit once the details are saved and both documents are uploaded. CRAD reviews it, assigns your panel and sets your defense schedule.') ?>
+                <div class="text-end mt-3"><button class="btn btn-primary" type="submit"><i class="fa-solid fa-paper-plane me-1"></i>Submit defense application</button></div>
             </form>
         <?php endif; ?>
         <?php if (!empty($app['history'])): ?>

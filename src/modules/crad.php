@@ -22,8 +22,8 @@ return [
             ['step.php?do=progress', 'Progress updates', 'fa-chart-line'],
             ['step.php?do=manuscript', 'Final manuscript', 'fa-book'],
         ]],
-        ['group' => 'Panel & Defense', 'icon' => 'fa-chalkboard-user', 'items' => [
-            ['step.php?do=panel', 'Panel application', 'fa-people-group'],
+        ['group' => 'Defense', 'icon' => 'fa-chalkboard-user', 'items' => [
+            ['step.php?do=panel', 'Defense application', 'fa-people-group'],
             ['defenses', 'Defense schedule', 'fa-calendar-check'],
         ]],
         ['group' => 'Financial', 'icon' => 'fa-wallet', 'items' => [
@@ -38,7 +38,7 @@ return [
         'group' => ['label' => 'Research group', 'icon' => 'fa-users'],
         'chapters' => ['label' => 'Submit chapters', 'icon' => 'fa-file-arrow-up'],
         'progress' => ['label' => 'Progress updates', 'icon' => 'fa-chart-line'],
-        'panel' => ['label' => 'Panel application', 'icon' => 'fa-people-group'],
+        'panel' => ['label' => 'Defense application', 'icon' => 'fa-people-group'],
         'manuscript' => ['label' => 'Final manuscript', 'icon' => 'fa-book'],
         'payment' => ['label' => 'Upload college payment', 'icon' => 'fa-receipt'],
         'clearance' => ['label' => 'Research clearance', 'icon' => 'fa-clipboard-check'],
