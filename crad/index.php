@@ -15,7 +15,7 @@ $actionHref = static fn(array $step): ?string => 'crad/step.php?do=' . rawurlenc
 portal_header('Research Workspace', 'crad/index.php', $user);
 ?>
 <link rel="stylesheet" href="assets/css/crad/research-statement.css?v=1">
-<link rel="stylesheet" href="assets/css/crad/research-hub.css?v=2">
+<link rel="stylesheet" href="assets/css/crad/research-hub.css?v=3">
 <?php if (is_array($statement) && !empty($statement['steps'])): ?>
     <?= smsRenderResearchHub($statement, '', $actionHref, false) ?>
 <?php else: ?>
