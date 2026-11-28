@@ -32,15 +32,5 @@ if ($res['status'] !== 200 || empty($res['body']['access_token'])) {
     portal_redirect(portal_url('login.php'));
 }
 
-session_regenerate_id(true);
-portal_store_tokens($res['body']);
-$user = $_SESSION['user'];
-try {
-    portal_db()->prepare(
-        'INSERT INTO portal_users (user_id, student_id, name, email, last_login_at) VALUES (?, ?, ?, ?, NOW())
-         ON DUPLICATE KEY UPDATE student_id = VALUES(student_id), name = VALUES(name), email = VALUES(email), last_login_at = NOW()'
-    )->execute([(int) $user['id'], $user['student_id'] ? strtoupper((string) $user['student_id']) : null, (string) $user['name'], (string) $user['email']]);
-} catch (Throwable $e) {
-    error_log('Portal user upsert failed: ' . $e->getMessage());
-}
+portal_complete_login($res['body']);
 portal_redirect(portal_url('index.php'));
