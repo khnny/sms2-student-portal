@@ -6,11 +6,11 @@ function portal_header(string $title, string $active, array $user): void
 {
     // Sidebar, grouped like the CRAD (SMS 2) student sidebar. Each enabled
     // module (src/modules/*.php) adds its own entries between Dashboard and the rest.
+    // The Announcement Bulletin comes first: it is the page students land on after sign-in.
     $nav = array_merge(
-        [['index', 'Dashboard', 'fa-gauge']],
+        [['index', 'Announcement Bulletin', 'fa-bullhorn'], ['dashboard', 'Dashboard', 'fa-gauge']],
         portal_module_nav(),
         [
-            ['announcements', 'Announcement Bulletin', 'fa-bullhorn'],
             ['notifications', 'Notifications', 'fa-bell'],
             ['profile', 'My profile', 'fa-id-card'],
         ]
@@ -89,7 +89,7 @@ function portal_header(string $title, string $active, array $user): void
 </nav>
 <div class="sp-content">
     <main class="sp-main">
-        <nav class="sp-crumbs" aria-label="breadcrumb"><a href="index.php"><i class="fa-solid fa-house"></i></a><span>/</span><a href="index.php">Student Portal</a><span>/</span><b><?= e($active === 'index' ? 'Dashboard' : $title) ?></b></nav>
+        <nav class="sp-crumbs" aria-label="breadcrumb"><a href="index.php"><i class="fa-solid fa-house"></i></a><span>/</span><a href="index.php">Student Portal</a><span>/</span><b><?= e($active === 'index' ? 'Announcement Bulletin' : $title) ?></b></nav>
         <?php if ($active !== 'crad/index.php'): ?><h1 class="sp-title"><?= e($title) ?></h1><?php endif; ?>
         <?php if ($flash): ?>
             <div class="alert alert-<?= e($flash['type']) ?>"><?= e($flash['message']) ?></div>

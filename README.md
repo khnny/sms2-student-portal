@@ -15,8 +15,8 @@ The full contract is in the SMS 2 project: `docs/INTEGRATION-API.md`.
 The portal is the student's single front door for every SMS 2 module. Each module has **one folder for its code** and **one folder for its pages**, so modules never mix:
 
 ```
-index.php, login.php, logout.php, notifications.php,
-announcements.php, profile.php, webhook.php, callback.php, open.php   shared portal pages
+index.php (bulletin), dashboard.php, login.php, logout.php, notifications.php,
+profile.php, webhook.php, callback.php, open.php   shared portal pages
 
 crad/                        CRAD (Research) pages the student opens
   index.php                    Research Workspace
@@ -51,8 +51,10 @@ Every successful read from the API is saved per student in `portal_api_cache`. I
 
 | Path | What it is |
 |---|---|
-| `index.php` | Dashboard |
-| `announcements.php`, `notifications.php`, `profile.php` | Shared pages |
+| `index.php` | Announcement Bulletin (home page, shown first after sign-in) |
+| `dashboard.php` | Dashboard |
+| `notifications.php`, `profile.php` | Shared pages |
+| `announcements.php` | Redirect to `index.php` (old address) |
 | `login.php`, `logout.php` | Portal login page (password checked by SMS 2) and sign-out |
 | `callback.php` | Older SMS 2 single sign-on return page, kept for links that still use it |
 | `crad/` | CRAD pages: `index.php` (Research Workspace), `step.php` (every step), `defenses.php`, `clearance.php` |

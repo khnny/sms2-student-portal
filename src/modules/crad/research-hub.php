@@ -274,7 +274,7 @@ function smsHubFacts(array $step, int $max = 3): array
  *        step actions open that URL in a new tab instead of a pop-up (used by the
  *        separate Student Portal, which cannot show SMS 2 pages inside a pop-up).
  */
-function smsRenderResearchHub(array $st, string $baseUrl, ?callable $actionHref = null): string
+function smsRenderResearchHub(array $st, string $baseUrl, ?callable $actionHref = null, bool $withHero = true): string
 {
     $s = $st['summary'];
     $student = $st['student'];
@@ -329,6 +329,7 @@ function smsRenderResearchHub(array $st, string $baseUrl, ?callable $actionHref 
     ob_start();
     ?>
 <div class="rh" id="researchHub">
+    <?php if ($withHero): ?>
     <section class="rh-hero2">
         <img class="rh-wm" src="<?= 'assets/img/bcp-crest.png' ?>" alt="" onerror="this.remove()">
         <div class="rh-hero-main">
@@ -371,6 +372,7 @@ function smsRenderResearchHub(array $st, string $baseUrl, ?callable $actionHref 
             <?php endif; ?>
         </div>
     </section>
+    <?php endif; ?>
 
     <div class="rh-legend">
         <h2>CRAD process</h2>
