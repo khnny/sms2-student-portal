@@ -239,6 +239,10 @@ function portal_access_token(): ?string
         'grant_type' => 'refresh_token',
         'refresh_token' => (string) $tokens['refresh'],
     ]);
+    if ($res['status'] === 0 || $res['status'] >= 500) {
+        // SMS 2 is down: keep the student signed in so the last known status can still be shown.
+        return (string) $tokens['access'];
+    }
     if ($res['status'] !== 200 || empty($res['body']['access_token'])) {
         return null;
     }
