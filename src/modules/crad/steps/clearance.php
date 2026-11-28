@@ -1,6 +1,7 @@
 <?php
 /** Research Services Clearance (included by crad/step.php). Uses $data from GET me/research/clearance-form. */
-$crestCss = PORTAL_SMS2_URL . '/modules/crad/assets/css/research-clearance.css';
+// Clearance form style, served by the portal itself (copied from CRAD) so the page needs nothing from SMS 2.
+$crestCss = portal_base_url() . '/assets/css/crad/research-clearance.css';
 ?>
 <section class="portal-card">
     <?= portal_step_head('fa-clipboard-check', 'Research services clearance', $tone, $step, 'Clearance') ?>
