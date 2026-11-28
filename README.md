@@ -5,7 +5,9 @@ The student-facing portal for SMS 2. It runs as its **own app and deployment**. 
 - **Login:** the portal has its own login page. The student uses their SMS 2 account; the portal sends the password server-to-server to the SMS 2 API (`grant_type=password`), so SMS 2 still checks it with its lockout and Authenticator rules and the portal never stores passwords. Students with an Authenticator enter their 6-digit code (or an emailed code) on the portal too.
 - **Data:** REST API v1 (`me`, research, members, milestones, submissions, feedback, defenses, clearance, announcements, notifications).
 - **Live updates:** SMS 2 sends signed webhooks to `webhook.php`, for example "title approved", "defense rescheduled", "chapter reviewed" or "payment approved". Each one becomes a notification here.
-- **Actions not moved yet** (submitting chapters, progress updates, panel application, final manuscript, payment upload, clearance form) open the existing SMS 2 pages with the same login, through `open.php`.
+- **Look:** same as the CRAD (SMS 2) student UI: top bar with clock, dark mode, notifications and user menu; grouped sidebar; Research Hub banner, progress ring and KPI tiles.
+- **Actions in the portal:** Chapters 1-3 and the final manuscript are uploaded on `step.php` through the SMS 2 API (`me/research/chapters`, `me/research/manuscript`; needs the matching SMS 2 update).
+- **Actions not moved yet** (title, research group, progress updates, panel application, payment upload, clearance form) show their status on `step.php`, then open the SMS 2 page in the same tab with the same login, through `open.php`.
 
 The full contract is in the SMS 2 project: `docs/INTEGRATION-API.md`.
 
@@ -17,7 +19,8 @@ The full contract is in the SMS 2 project: `docs/INTEGRATION-API.md`.
 | `research.php`, `defenses.php`, `clearance.php`, `announcements.php`, `notifications.php`, `profile.php` | Pages |
 | `login.php`, `logout.php` | Portal login page (password checked by SMS 2) and sign-out |
 | `callback.php` | Older SMS 2 single sign-on return page, kept for links that still use it |
-| `open.php` | Opens an SMS 2 student page with the same login |
+| `step.php` | One CRAD step in the portal: chapter and manuscript upload, status of the other steps |
+| `open.php` | Opens an SMS 2 student page with the same login, same tab |
 | `webhook.php` | Receives SMS 2 webhooks |
 | `src/bootstrap.php` | Session, API client, token refresh, portal database |
 | `src/layout.php` | Page layout |

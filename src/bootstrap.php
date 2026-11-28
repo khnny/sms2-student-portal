@@ -137,7 +137,12 @@ function portal_http(string $method, string $url, array $headers = [], ?array $f
         CURLOPT_FOLLOWLOCATION => false,
     ];
     if ($form !== null) {
-        $opts[CURLOPT_POSTFIELDS] = http_build_query($form);
+        // A form holding a CURLFile is sent as multipart/form-data (file upload).
+        $hasFile = (bool) array_filter($form, static fn($v) => $v instanceof CURLFile);
+        $opts[CURLOPT_POSTFIELDS] = $hasFile ? $form : http_build_query($form);
+        if ($hasFile) {
+            $opts[CURLOPT_TIMEOUT] = 120;
+        }
     }
     curl_setopt_array($ch, $opts);
     $raw = curl_exec($ch);
@@ -262,6 +267,11 @@ function portal_api(string $path, string $method = 'GET', ?array $form = null)
         portal_flash('Your session ended. Please sign in again.', 'warning');
         portal_redirect(portal_url('login.php'));
     }
+    if ($method !== 'GET' && $res['status'] >= 400 && $res['status'] < 500 && $res['status'] !== 404 && isset($res['body']['error']['message'])) {
+        // A rule in SMS 2 refused the action: the message is meant for the student.
+        $GLOBALS['portal_api_last_error'] = (string) $res['body']['error']['message'];
+        return null;
+    }
     if ($res['status'] !== 200 || !is_array($res['body']) || !array_key_exists('data', $res['body'])) {
         error_log('Portal API ' . $method . ' ' . $path . ' failed: HTTP ' . $res['status'] . ' ' . $res['error']);
         $GLOBALS['portal_api_errors'][] = $path;
@@ -289,6 +299,20 @@ function portal_local_notifications(array $user, int $limit = 20): array
     }
 }
 
+/** Unread notifications for the top bar bell (0 when the portal database is unavailable). */
+function portal_unread_count(array $user): int
+{
+    try {
+        $stmt = portal_db()->prepare(
+            'SELECT COUNT(*) FROM portal_notifications WHERE read_at IS NULL AND (user_id = :uid OR (student_id IS NOT NULL AND student_id = :sid))'
+        );
+        $stmt->execute([':uid' => (int) $user['id'], ':sid' => strtoupper((string) ($user['student_id'] ?? ''))]);
+        return (int) $stmt->fetchColumn();
+    } catch (Throwable $e) {
+        return 0;
+    }
+}
+
 /**
  * Links that open an existing SMS 2 student page (actions not yet moved to the API).
  * Keys are fixed: the portal cannot be used to open arbitrary pages.
@@ -306,3 +330,41 @@ function portal_sms2_actions(): array
         'clearance' => ['label' => 'Research clearance', 'icon' => 'fa-clipboard-check', 'path' => '/modules/student-portal/pages/research-clearance.php'],
     ];
 }
+
+/** Map a research-statement step key to its in-portal action page (step.php?do=...). */
+function portal_step_for_key(string $stepKey): string
+{
+    return [
+        'group' => 'group', 'assignment' => 'group', 'title' => 'proposal', 'registry' => 'group',
+        'chapters' => 'chapters', 'progress' => 'progress', 'defense' => 'panel',
+        'manuscript' => 'manuscript', 'clearance' => 'clearance',
+    ][$stepKey] ?? 'chapters';
+}
+
+/**
+ * The uploaded file from this request, checked and ready to send to SMS 2,
+ * or a message for the student. SMS 2 checks the file again on its side.
+ *
+ * @return CURLFile|string
+ */
+function portal_upload_from_request(string $field, int $maxMb)
+{
+    $f = $_FILES[$field] ?? null;
+    if (!is_array($f) || (int) ($f['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_NO_FILE) {
+        return 'Please choose a file to upload.';
+    }
+    if (in_array((int) $f['error'], [UPLOAD_ERR_INI_SIZE, UPLOAD_ERR_FORM_SIZE], true) || (int) $f['size'] > $maxMb * 1024 * 1024) {
+        return 'That file is too big. The limit is ' . $maxMb . ' MB.';
+    }
+    if ((int) $f['error'] !== UPLOAD_ERR_OK || !is_uploaded_file((string) $f['tmp_name'])) {
+        return 'The file did not upload completely. Please try again.';
+    }
+    $name = basename(str_replace('\\', '/', (string) $f['name']));
+    $ext = strtolower(pathinfo($name, PATHINFO_EXTENSION));
+    if (!in_array($ext, ['pdf', 'doc', 'docx'], true)) {
+        return 'Please upload a PDF or Word file (.pdf, .doc, .docx).';
+    }
+    $mime = class_exists('finfo') ? ((new finfo(FILEINFO_MIME_TYPE))->file((string) $f['tmp_name']) ?: 'application/octet-stream') : 'application/octet-stream';
+    return new CURLFile((string) $f['tmp_name'], $mime, $name);
+}
+

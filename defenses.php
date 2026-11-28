@@ -9,7 +9,7 @@ portal_header('Defense schedule', 'defenses', $user);
 ?>
 <?php if (!$defenses): ?>
     <section class="portal-card"><?= portal_empty('No defense has been scheduled for your group yet.') ?>
-        <a class="btn btn-sm btn-primary mt-3" href="open.php?to=panel">Apply for a panel defense</a></section>
+        <a class="btn btn-sm btn-primary mt-3" href="step.php?do=panel">Apply for a panel defense</a></section>
 <?php endif; ?>
 <?php foreach ($defenses as $d): ?>
     <section class="portal-card mb-3">
