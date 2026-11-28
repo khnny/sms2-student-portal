@@ -9,7 +9,7 @@
  * Authenticator then enter their 6-digit code (or an emailed code) here too.
  */
 declare(strict_types=1);
-require_once __DIR__ . '/src/bootstrap.php';
+require_once __DIR__ . '/src/core/bootstrap.php';
 
 if (portal_logged_in()) {
     portal_redirect(portal_url('index.php'));

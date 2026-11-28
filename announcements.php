@@ -1,8 +1,8 @@
 <?php
 /** Published announcements for students. */
 declare(strict_types=1);
-require_once __DIR__ . '/src/bootstrap.php';
-require_once __DIR__ . '/src/layout.php';
+require_once __DIR__ . '/src/core/bootstrap.php';
+require_once __DIR__ . '/src/core/layout.php';
 $user = portal_require_login();
 $items = portal_api('announcements') ?? [];
 portal_header('Announcements', 'announcements', $user);

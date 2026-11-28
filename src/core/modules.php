@@ -3,7 +3,7 @@
  * Module registry: the one contract every SMS 2 module follows to appear in the portal.
  *
  * The portal is the student's single front door. Each SMS 2 module (CRAD,
- * Registrar, Payment, Accreditation, ...) is one file in src/modules/<key>.php
+ * Registrar, Payment, Accreditation, ...) is one folder: src/modules/<key>/module.php
  * that returns an array with these keys:
  *
  *   key         string   short id, same as the file name, e.g. 'crad'
@@ -21,7 +21,9 @@
  *
  * Data always comes from the SMS 2 API with the student's token (portal_api),
  * so the module's office keeps reviewing in SMS 2 and stays the source of truth.
- * To add a module: copy src/modules/registrar.php, fill it in, set enabled to true.
+ * Its student pages go in <key>/ at the portal root (like crad/), and its own
+ * views in src/modules/<key>/. To add a module: copy src/modules/registrar/,
+ * fill in module.php, add its pages, then set enabled to true.
  */
 declare(strict_types=1);
 
@@ -31,10 +33,10 @@ function portal_modules(bool $includeDisabled = false): array
     static $all = null;
     if ($all === null) {
         $all = [];
-        $files = glob(__DIR__ . '/modules/*.php') ?: [];
+        $files = glob(dirname(__DIR__) . '/modules/*/module.php') ?: [];
         sort($files);
         // CRAD (Research) is the main module, so it always comes first.
-        usort($files, static fn(string $a, string $b): int => (int) (basename($b) === 'crad.php') <=> (int) (basename($a) === 'crad.php'));
+        usort($files, static fn(string $a, string $b): int => (int) (basename(dirname($b)) === 'crad') <=> (int) (basename(dirname($a)) === 'crad'));
         foreach ($files as $file) {
             $m = require $file;
             if (!is_array($m) || empty($m['key'])) {

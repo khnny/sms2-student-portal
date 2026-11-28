@@ -1,5 +1,5 @@
 <?php
-/** Defense application (CRAD calls the table "panel requests") (included by step.php). Uses $data from GET me/research/panel. */
+/** Defense application (CRAD calls the table "panel requests") (included by crad/step.php). Uses $data from GET me/research/panel. */
 $app = $data['application'] ?? null;
 ?>
 <section class="portal-card">

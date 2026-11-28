@@ -1,5 +1,5 @@
 <?php
-/** Chapter 1-3 upload form (included by step.php). Uses $chapters from GET me/research/chapters. */
+/** Chapter 1-3 upload form (included by crad/step.php). Uses $chapters from GET me/research/chapters. */
 $canAny = false;
 foreach (($chapters['chapters'] ?? []) as $c) {
     $canAny = $canAny || !empty($c['can_submit']);
@@ -48,7 +48,7 @@ foreach (($chapters['chapters'] ?? []) as $c) {
             </div>
             <div class="sp-note"><i class="fa-solid fa-circle-info mt-1"></i><span>Your file goes straight to SMS 2 for Grammarian evaluation. You get a notification when it is reviewed.</span></div>
             <div class="d-flex gap-2 justify-content-end mt-4">
-                <a href="research.php" class="btn btn-soft">Cancel</a>
+                <a href="crad/index.php" class="btn btn-soft">Cancel</a>
                 <button class="btn btn-primary" type="submit"><i class="fa-solid fa-paper-plane me-1"></i>Submit chapter</button>
             </div>
         </form>

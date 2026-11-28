@@ -1,5 +1,5 @@
 <?php
-/** Research group form (included by step.php). Uses $data from GET me/research/group. */
+/** Research group form (included by crad/step.php). Uses $data from GET me/research/group. */
 $members = $data['members'] ?? [];
 $max = (int) ($data['max_members'] ?? 5);
 $min = (int) ($data['min_members'] ?? 5);

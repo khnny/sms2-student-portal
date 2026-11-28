@@ -1,5 +1,5 @@
 <?php
-/** Research Services Clearance (included by step.php). Uses $data from GET me/research/clearance-form. */
+/** Research Services Clearance (included by crad/step.php). Uses $data from GET me/research/clearance-form. */
 $crestCss = PORTAL_SMS2_URL . '/modules/crad/assets/css/research-clearance.css';
 ?>
 <section class="portal-card">

@@ -16,7 +16,7 @@ function portal_header(string $title, string $active, array $user): void
         ]
     );
     $isActive = static function (string $key) use ($active): bool {
-        return $key === $active || $key === 'step.php?do=' . $active;
+        return $key === $active;
     };
     $href = static fn(string $key): string => str_contains($key, '.php') ? $key : $key . '.php';
     $flash = portal_flash();
@@ -33,6 +33,7 @@ function portal_header(string $title, string $active, array $user): void
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title><?= e($title) ?> · <?= e(PORTAL_APP_NAME) ?></title>
+    <base href="<?= e(portal_base_url()) ?>/"><?php /* links are relative to the portal root, also from module folders like crad/ */ ?>
     <script>try{var t=localStorage.getItem('portal-theme');if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}</script>
     <link rel="stylesheet" href="assets/vendor/bootstrap/bootstrap.min.css">
     <link rel="stylesheet" href="assets/vendor/fontawesome/css/all.min.css">
@@ -89,7 +90,7 @@ function portal_header(string $title, string $active, array $user): void
 <div class="sp-content">
     <main class="sp-main">
         <nav class="sp-crumbs" aria-label="breadcrumb"><a href="index.php"><i class="fa-solid fa-house"></i></a><span>/</span><a href="index.php">Student Portal</a><span>/</span><b><?= e($active === 'index' ? 'Dashboard' : $title) ?></b></nav>
-        <?php if ($active !== 'research'): ?><h1 class="sp-title"><?= e($title) ?></h1><?php endif; ?>
+        <?php if ($active !== 'crad/index.php'): ?><h1 class="sp-title"><?= e($title) ?></h1><?php endif; ?>
         <?php if ($flash): ?>
             <div class="alert alert-<?= e($flash['type']) ?>"><?= e($flash['message']) ?></div>
         <?php endif; ?>
@@ -140,7 +141,7 @@ function portal_empty(string $text): string
     return '<p class="text-muted mb-0"><i class="fa-regular fa-folder-open me-2"></i>' . e($text) . '</p>';
 }
 
-/** Card heading used by the step forms (src/step-*.php). */
+/** Card heading used by the step forms (src/modules/<key>/steps/*.php). */
 function portal_step_head(string $icon, string $title, string $tone, ?array $step, string $fallback): string
 {
     return '<div class="d-flex align-items-center gap-3 mb-3"><span class="sp-ic ' . e($tone) . '"><i class="fa-solid ' . e($icon) . '"></i></span>'
