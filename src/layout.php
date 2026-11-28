@@ -139,3 +139,26 @@ function portal_empty(string $text): string
 {
     return '<p class="text-muted mb-0"><i class="fa-regular fa-folder-open me-2"></i>' . e($text) . '</p>';
 }
+
+/** Card heading used by the step forms (src/step-*.php). */
+function portal_step_head(string $icon, string $title, string $tone, ?array $step, string $fallback): string
+{
+    return '<div class="d-flex align-items-center gap-3 mb-3"><span class="sp-ic ' . e($tone) . '"><i class="fa-solid ' . e($icon) . '"></i></span>'
+        . '<div class="flex-grow-1"><div class="small text-muted fw-semibold text-uppercase">' . e($step ? 'Step ' . $step['no'] : $fallback) . '</div>'
+        . '<div class="fw-bold fs-5" style="color:var(--ink)">' . e($title) . '</div></div>' . portal_status_badge($step['status'] ?? null) . '</div>';
+}
+
+function portal_note(string $text, string $icon = 'fa-circle-info', string $class = ''): string
+{
+    return '<div class="sp-note ' . e($class) . '"><i class="fa-solid ' . e($icon) . ' mt-1"></i><span>' . e($text) . '</span></div>';
+}
+
+/** File picker in the portal's drop-zone style. */
+function portal_file_field(string $name, string $label, string $accept, string $hint, bool $required = true, ?string $id = null): string
+{
+    $id = $id ?? $name;
+    return '<div class="mb-3"><label class="form-label" for="' . e($id) . '">' . e($label) . '</label>'
+        . '<label class="sp-drop d-block" for="' . e($id) . '"><i class="fa-solid fa-cloud-arrow-up d-block"></i>'
+        . '<b style="color:var(--ink)">Choose a file</b><br><span class="small">' . e($hint) . '</span><br><span class="small fw-semibold" data-file-name>No file selected</span></label>'
+        . '<input class="visually-hidden" type="file" id="' . e($id) . '" name="' . e($name) . '" accept="' . e($accept) . '"' . ($required ? ' required' : '') . '></div>';
+}

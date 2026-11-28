@@ -31,16 +31,17 @@ return [
             ['clearance', 'Clearance & payment', 'fa-clipboard-check'],
         ]],
     ],
-    // No 'path' = done fully in the portal. A 'path' = SMS 2 page still used (open.php).
+    // Every CRAD student step is done in the portal (step.php?do=<key>). An action
+    // with a 'path' would instead open that SMS 2 page through open.php.
     'actions' => [
-        'proposal' => ['label' => 'Research proposal / title', 'icon' => 'fa-file-signature', 'path' => '/modules/student-portal/pages/research-proposal-submission.php'],
-        'group' => ['label' => 'Research group', 'icon' => 'fa-users', 'path' => '/modules/student-portal/pages/research-group.php'],
+        'proposal' => ['label' => 'Research proposal / title', 'icon' => 'fa-file-signature'],
+        'group' => ['label' => 'Research group', 'icon' => 'fa-users'],
         'chapters' => ['label' => 'Submit chapters', 'icon' => 'fa-file-arrow-up'],
-        'progress' => ['label' => 'Progress updates', 'icon' => 'fa-chart-line', 'path' => '/modules/student-portal/pages/progress-updates.php'],
-        'panel' => ['label' => 'Panel application', 'icon' => 'fa-people-group', 'path' => '/modules/student-portal/pages/panel-application.php'],
+        'progress' => ['label' => 'Progress updates', 'icon' => 'fa-chart-line'],
+        'panel' => ['label' => 'Panel application', 'icon' => 'fa-people-group'],
         'manuscript' => ['label' => 'Final manuscript', 'icon' => 'fa-book'],
-        'payment' => ['label' => 'Upload college payment', 'icon' => 'fa-receipt', 'path' => '/modules/student-portal/pages/college-payment.php'],
-        'clearance' => ['label' => 'Research clearance', 'icon' => 'fa-clipboard-check', 'path' => '/modules/student-portal/pages/research-clearance.php'],
+        'payment' => ['label' => 'Upload college payment', 'icon' => 'fa-receipt'],
+        'clearance' => ['label' => 'Research clearance', 'icon' => 'fa-clipboard-check'],
     ],
     // Research-statement step key => portal action key.
     'step_actions' => [
